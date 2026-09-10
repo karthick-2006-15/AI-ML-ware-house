@@ -1,0 +1,28 @@
+{
+    "model_name": "XGBoost Regressor (KPI Score)",
+    "features": [
+        "stock_level",
+        "reorder_point",
+        "reorder_frequency_days",
+        "lead_time_days",
+        "daily_demand",
+        "demand_std_dev",
+        "item_popularity_score",
+        "picking_time_seconds",
+        "handling_cost_per_unit",
+        "unit_price",
+        "holding_cost_per_unit_day",
+        "order_fulfillment_rate",
+        "total_orders_last_month",
+        "turnover_ratio",
+        "layout_efficiency_score",
+        "category_encoded",
+        "zone_encoded"
+    ],
+    "target": "KPI_score",
+    "metrics": {
+        "MAE": 0.05100101593578476,
+        "RMSE": 0.06062218166230779,
+        "R2": 0.7192752365626247
+    }
+}

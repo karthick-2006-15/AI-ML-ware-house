@@ -1,0 +1,56 @@
+{
+  "model_path": "models/final/weights/best.pt",
+  "test_images_evaluated": 1601,
+  "total_failures_logged": 20168,
+  "failure_breakdown": {
+    "missed_objects_fn": {
+      "robotic_arm": 162,
+      "box": 5314,
+      "pallet": 1604,
+      "forklift": 19,
+      "person": 111,
+      "robot": 20
+    },
+    "false_positives_fp": {
+      "box": 439,
+      "robotic_arm": 20,
+      "pallet": 155,
+      "person": 73,
+      "forklift": 10,
+      "robot": 1
+    },
+    "class_confusions": {
+      "robotic_arm -> box": 1,
+      "box -> pallet": 27,
+      "robot -> person": 3,
+      "person -> robot": 1,
+      "box -> robot": 2,
+      "pallet -> box": 4,
+      "box -> robotic_arm": 2
+    },
+    "poor_localization": {
+      "robotic_arm": 92,
+      "box": 3900,
+      "pallet": 1034,
+      "forklift": 39,
+      "person": 73,
+      "robot": 2
+    },
+    "small_object_failures": {
+      "robotic_arm": 1,
+      "box": 4924,
+      "pallet": 1586,
+      "forklift": 5,
+      "robot": 6,
+      "person": 38
+    },
+    "crowded_scene_failures": {
+      "dense_scene": 500
+    }
+  },
+  "key_insights": [
+    "Cardboard cartons (box) and pallets experience localization errors in stacked configurations.",
+    "Robotic arms and AGVs (robot) have low false positive rates but suffer occasional false negatives under extreme distance/occlusion.",
+    "Personnel (person) are occasionally missed when heavily occluded behind forklift cages or tall racking."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+    "model_name": "YOLOv8n",
+    "dataset": "Open Images V7 (Box, Person)",
+    "metrics": {
+        "mAP50": 0.0002258226150864401,
+        "mAP50-95": 9.295907725934901e-05,
+        "precision": 3.4947768281101616e-05,
+        "recall": 0.006119259037546975
+    }
+}

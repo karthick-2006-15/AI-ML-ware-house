@@ -1,0 +1,10 @@
+path: C:\Users\karth\OneDrive\Desktop\ai ware house\data\warehouse_robot_remapped
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 3
+names:
+  0: Box
+  1: Person
+  2: Robot

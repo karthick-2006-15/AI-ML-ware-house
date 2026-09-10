@@ -1,0 +1,60 @@
+{
+  "model_path": "models/baseline/weights/best.pt",
+  "split": "test",
+  "overall": {
+    "precision": 0.7755,
+    "recall": 0.6163,
+    "map50": 0.696,
+    "map50_95": 0.4526,
+    "speed_ms": {
+      "preprocess": 2.4896204247774043,
+      "inference": 4.867044472326696,
+      "loss": 0.001589444129705094,
+      "postprocess": 2.65269725180512
+    }
+  },
+  "per_class": {
+    "person": {
+      "class_id": 0,
+      "precision": 0.8075,
+      "recall": 0.5286,
+      "map50": 0.6758,
+      "map50_95": 0.3809
+    },
+    "box": {
+      "class_id": 1,
+      "precision": 0.8184,
+      "recall": 0.7702,
+      "map50": 0.8127,
+      "map50_95": 0.582
+    },
+    "pallet": {
+      "class_id": 2,
+      "precision": 0.831,
+      "recall": 0.852,
+      "map50": 0.8886,
+      "map50_95": 0.6551
+    },
+    "forklift": {
+      "class_id": 3,
+      "precision": 0.7047,
+      "recall": 0.9185,
+      "map50": 0.929,
+      "map50_95": 0.6855
+    },
+    "robot": {
+      "class_id": 4,
+      "precision": 0.7455,
+      "recall": 0.1471,
+      "map50": 0.2399,
+      "map50_95": 0.1068
+    },
+    "robotic_arm": {
+      "class_id": 5,
+      "precision": 0.7461,
+      "recall": 0.4815,
+      "map50": 0.6299,
+      "map50_95": 0.3054
+    }
+  }
+}

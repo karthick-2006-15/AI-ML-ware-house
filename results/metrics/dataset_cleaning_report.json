@@ -1,0 +1,33 @@
+{
+  "raw_counts": {
+    "warehouse_images": 7886,
+    "warehouse_annotations": 304913,
+    "robotic_arm_images": 3418,
+    "robotic_arm_annotations": 3948
+  },
+  "cleaned_counts": {
+    "total_images": 10691,
+    "total_annotations": 305447,
+    "class_annotations": {
+      "0": 3511,
+      "1": 204212,
+      "2": 91777,
+      "3": 1795,
+      "4": 204,
+      "5": 3948
+    }
+  },
+  "cleaning_actions": {
+    "duplicates_removed": 330,
+    "corrupt_images_removed": 0,
+    "images_without_target_classes_removed": 283,
+    "polygons_converted_to_bboxes": 267,
+    "out_of_bounds_clipped": 0,
+    "degenerate_zero_area_boxes_removed": 1003,
+    "excluded_class_annotations_removed": {
+      "cart": 65,
+      "white_roll": 2346
+    }
+  },
+  "splits": {}
+}

@@ -1,0 +1,7 @@
+names:
+  0: Box
+  1: Person
+nc: 2
+path: C:\Users\karth\OneDrive\Desktop\ai ware house\data\raw\vision
+train: .\images\val\
+val: .\images\val\

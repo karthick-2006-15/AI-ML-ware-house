@@ -1,0 +1,28 @@
+{
+    "model_name": "XGBoost Regressor (Demand Forecasting)",
+    "features": [
+        "stock_level",
+        "reorder_point",
+        "reorder_frequency_days",
+        "lead_time_days",
+        "daily_demand",
+        "demand_std_dev",
+        "item_popularity_score",
+        "picking_time_seconds",
+        "handling_cost_per_unit",
+        "unit_price",
+        "holding_cost_per_unit_day",
+        "order_fulfillment_rate",
+        "total_orders_last_month",
+        "turnover_ratio",
+        "layout_efficiency_score",
+        "category_encoded",
+        "zone_encoded"
+    ],
+    "target": "forecasted_demand_next_7d",
+    "metrics": {
+        "MAE": 75.19099654318204,
+        "RMSE": 88.28407306009063,
+        "R2": -0.10300127068037668
+    }
+}

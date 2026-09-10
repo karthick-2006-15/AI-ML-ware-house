@@ -1,0 +1,68 @@
+{
+    "stockout_risk": [
+        {
+            "feature": "stock_level",
+            "importance": 0.06798875331878662
+        },
+        {
+            "feature": "layout_efficiency_score",
+            "importance": 0.06656414270401001
+        },
+        {
+            "feature": "turnover_ratio",
+            "importance": 0.06559646874666214
+        },
+        {
+            "feature": "total_orders_last_month",
+            "importance": 0.0645124763250351
+        },
+        {
+            "feature": "daily_demand",
+            "importance": 0.06090622395277023
+        }
+    ],
+    "performance_kpi": [
+        {
+            "feature": "holding_cost_per_unit_day",
+            "importance": 0.2652684450149536
+        },
+        {
+            "feature": "turnover_ratio",
+            "importance": 0.24303823709487915
+        },
+        {
+            "feature": "layout_efficiency_score",
+            "importance": 0.20307740569114685
+        },
+        {
+            "feature": "order_fulfillment_rate",
+            "importance": 0.04563053697347641
+        },
+        {
+            "feature": "unit_price",
+            "importance": 0.023418501019477844
+        }
+    ],
+    "demand_forecast": [
+        {
+            "feature": "total_orders_last_month",
+            "importance": 0.07036224007606506
+        },
+        {
+            "feature": "handling_cost_per_unit",
+            "importance": 0.06888286024332047
+        },
+        {
+            "feature": "holding_cost_per_unit_day",
+            "importance": 0.06751365214586258
+        },
+        {
+            "feature": "unit_price",
+            "importance": 0.06649059057235718
+        },
+        {
+            "feature": "turnover_ratio",
+            "importance": 0.06528376042842865
+        }
+    ]
+}

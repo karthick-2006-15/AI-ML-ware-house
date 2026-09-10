@@ -1,0 +1,12 @@
+path: C:/Users/karth/OneDrive/Desktop/ai ware house/data/processed/warehouse_yolo
+train: images/train
+val: images/val
+test: images/test
+nc: 6
+names:
+  0: person
+  1: box
+  2: pallet
+  3: forklift
+  4: robot
+  5: robotic_arm

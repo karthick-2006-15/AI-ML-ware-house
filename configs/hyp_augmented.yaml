@@ -1,0 +1,16 @@
+# Warehouse-Specific Domain Augmentation Configuration
+# Tuned for industrial warehousing: variable artificial lighting, high ceiling perspective,
+# and partial rack occlusion. Flips are horizontal-only (maintaining realistic gravity).
+hsv_h: 0.015      # Color tone variance
+hsv_s: 0.6        # Saturation variance (faded cartons vs bright safety vests)
+hsv_v: 0.4        # Illumination jitter (simulating dark aisles vs bright loading docks)
+degrees: 0.0      # Zero rotation (warehouse structures stay vertical)
+translate: 0.1    # Object position shift
+scale: 0.5        # Variable distance / camera zoom
+shear: 0.0        # No unphysical shear
+perspective: 0.0005 # Simulates angled security cameras looking down aisles
+flipud: 0.0       # NO vertical flipping (robots and humans do not operate on ceilings)
+fliplr: 0.5       # 50% probability of horizontal reflection
+mosaic: 0.8       # Dense multi-object contextual learning
+mixup: 0.1        # Object blend augmentation
+copy_paste: 0.0   # Disabled for pure bbox

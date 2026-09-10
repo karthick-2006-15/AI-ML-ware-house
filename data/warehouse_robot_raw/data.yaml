@@ -1,0 +1,18 @@
+names:
+- box
+- cart
+- forklift
+- pallets
+- person
+- robot
+- white_roll
+nc: 7
+roboflow:
+  license: Private
+  project: warehouse-vz8e0-hgmnc
+  url: https://universe.roboflow.com/karthick-thangadurai/warehouse-vz8e0-hgmnc/dataset/1
+  version: 1
+  workspace: karthick-thangadurai
+test: ../test/images
+train: ../train/images
+val: ../valid/images

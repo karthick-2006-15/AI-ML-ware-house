@@ -1,0 +1,30 @@
+{
+    "model_name": "XGBoost Classifier (Stockout Risk)",
+    "features": [
+        "stock_level",
+        "reorder_point",
+        "reorder_frequency_days",
+        "lead_time_days",
+        "daily_demand",
+        "demand_std_dev",
+        "item_popularity_score",
+        "picking_time_seconds",
+        "handling_cost_per_unit",
+        "unit_price",
+        "holding_cost_per_unit_day",
+        "order_fulfillment_rate",
+        "total_orders_last_month",
+        "turnover_ratio",
+        "layout_efficiency_score",
+        "category_encoded",
+        "zone_encoded"
+    ],
+    "target": "stockout_binary",
+    "metrics": {
+        "Accuracy": 0.9266770670826833,
+        "Precision": 0.9266770670826833,
+        "Recall": 1.0,
+        "F1": 0.9619433198380567,
+        "ROC-AUC": 0.5092413496668816
+    }
+}

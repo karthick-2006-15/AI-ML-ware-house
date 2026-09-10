@@ -1,0 +1,136 @@
+{
+  "datasets": {
+    "warehouse_robot_raw": {
+      "images": 7886,
+      "annotations": 304913,
+      "splits": {
+        "train": {
+          "images": 6307,
+          "annotations": 245469,
+          "class_instances": {
+            "box": 165195,
+            "pallets": 73982,
+            "forklift": 1459,
+            "person": 2844,
+            "cart": 56,
+            "robot": 164,
+            "white_roll": 1769
+          }
+        },
+        "valid": {
+          "images": 1263,
+          "annotations": 46835,
+          "class_instances": {
+            "box": 31450,
+            "pallets": 14180,
+            "forklift": 257,
+            "cart": 5,
+            "person": 520,
+            "robot": 30,
+            "white_roll": 393
+          }
+        },
+        "test": {
+          "images": 316,
+          "annotations": 12609,
+          "class_instances": {
+            "pallets": 3766,
+            "box": 8419,
+            "cart": 4,
+            "robot": 10,
+            "forklift": 79,
+            "person": 147,
+            "white_roll": 184
+          }
+        }
+      },
+      "class_instances": {
+        "box": 205064,
+        "pallets": 91928,
+        "forklift": 1795,
+        "person": 3511,
+        "cart": 65,
+        "robot": 204,
+        "white_roll": 2346
+      },
+      "images_per_class": {
+        "box": 6216,
+        "pallets": 3529,
+        "forklift": 1780,
+        "person": 1481,
+        "cart": 63,
+        "robot": 190,
+        "white_roll": 192
+      }
+    },
+    "robotic_arm_raw": {
+      "images": 3418,
+      "annotations": 4368,
+      "splits": {
+        "train": {
+          "images": 2970,
+          "annotations": 3751,
+          "class_instances": {
+            "robotic_arm": 3751
+          }
+        },
+        "valid": {
+          "images": 299,
+          "annotations": 418,
+          "class_instances": {
+            "robotic_arm": 418
+          }
+        },
+        "test": {
+          "images": 149,
+          "annotations": 199,
+          "class_instances": {
+            "robotic_arm": 199
+          }
+        }
+      },
+      "class_instances": {
+        "robotic_arm": 4368
+      },
+      "images_per_class": {
+        "robotic_arm": 3418
+      }
+    }
+  },
+  "integrity": {
+    "corrupt_images": 0,
+    "missing_annotations": 0,
+    "empty_annotations": 274,
+    "invalid_bboxes": 0,
+    "out_of_bounds_bboxes": 0,
+    "tiny_bboxes_under_0_001_area": 84707,
+    "exact_duplicate_images": 330,
+    "polygon_annotations": 267
+  },
+  "taxonomy_mapping": {
+    "0 (person)": "warehouse_robot_raw: person (class 4)",
+    "1 (box)": "warehouse_robot_raw: box (class 0)",
+    "2 (pallet)": "warehouse_robot_raw: pallets (class 3)",
+    "3 (forklift)": "warehouse_robot_raw: forklift (class 2)",
+    "4 (robot)": "warehouse_robot_raw: robot (class 5)",
+    "5 (robotic_arm)": "robotic_arm_raw: Robotic-arm (class 0)"
+  },
+  "target_6_class_distribution": {
+    "instances": {
+      "person": 3511,
+      "box": 205064,
+      "pallet": 91928,
+      "forklift": 1795,
+      "robot": 204,
+      "robotic_arm": 4368
+    },
+    "images": {
+      "person": 1481,
+      "box": 6216,
+      "pallet": 3529,
+      "forklift": 1780,
+      "robot": 190,
+      "robotic_arm": 3418
+    }
+  }
+}

@@ -1,0 +1,12 @@
+names:
+- Robotic-arm
+nc: 1
+roboflow:
+  license: CC BY 4.0
+  project: robotic-arm-0r333
+  url: https://universe.roboflow.com/label-nhdaa/robotic-arm-0r333/dataset/1
+  version: 1
+  workspace: label-nhdaa
+test: ../test/images
+train: ../train/images
+val: ../valid/images
