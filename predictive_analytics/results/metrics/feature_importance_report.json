@@ -1,0 +1,86 @@
+{
+  "model_analyzed": "Best Tuned XGBoost Classifier",
+  "top_features_by_shap": [
+    {
+      "feature": "stock_level",
+      "mean_abs_shap": 2.6211,
+      "gain": 80.58
+    },
+    {
+      "feature": "safety_stock_coverage",
+      "mean_abs_shap": 0.272,
+      "gain": 44.71
+    },
+    {
+      "feature": "reorder_buffer_ratio",
+      "mean_abs_shap": 0.1803,
+      "gain": 24.9
+    },
+    {
+      "feature": "days_of_supply",
+      "mean_abs_shap": 0.1241,
+      "gain": 12.01
+    },
+    {
+      "feature": "daily_demand",
+      "mean_abs_shap": 0.1029,
+      "gain": 8.05
+    },
+    {
+      "feature": "picking_time_seconds",
+      "mean_abs_shap": 0.0773,
+      "gain": 7.54
+    },
+    {
+      "feature": "total_orders_last_month",
+      "mean_abs_shap": 0.0671,
+      "gain": 6.7
+    },
+    {
+      "feature": "demand_std_dev",
+      "mean_abs_shap": 0.066,
+      "gain": 6.85
+    },
+    {
+      "feature": "days_since_last_restock",
+      "mean_abs_shap": 0.0658,
+      "gain": 6.7
+    },
+    {
+      "feature": "stockout_pressure_index",
+      "mean_abs_shap": 0.0587,
+      "gain": 8.21
+    },
+    {
+      "feature": "turnover_velocity",
+      "mean_abs_shap": 0.0581,
+      "gain": 6.96
+    },
+    {
+      "feature": "reorder_point",
+      "mean_abs_shap": 0.0508,
+      "gain": 13.12
+    },
+    {
+      "feature": "carrying_to_handling_ratio",
+      "mean_abs_shap": 0.0508,
+      "gain": 5.95
+    },
+    {
+      "feature": "reorder_frequency_days",
+      "mean_abs_shap": 0.0479,
+      "gain": 6.19
+    },
+    {
+      "feature": "item_popularity_score",
+      "mean_abs_shap": 0.0343,
+      "gain": 7.35
+    }
+  ],
+  "interpretability_insights": [
+    "days_of_supply and stock_level are the primary drivers of stock-risk classification.",
+    "replenish_cycle_demand and lead_time_demand serve as dynamic thresholds: items where stock_level is close to or below lead-time requirements trigger strong positive log-odds contributions.",
+    "stockout_count_last_month and order_fulfillment_rate provide secondary historical friction signals.",
+    "Categorical product categories and warehouse zones have smaller direct impact compared to continuous operational velocity ratios."
+  ]
+}

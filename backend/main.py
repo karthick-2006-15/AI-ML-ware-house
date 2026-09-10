@@ -63,8 +63,8 @@ def setup_env():
             
     for idx, (x, y) in enumerate(shelf_coords):
         shelf = Shelf(id=f"S_{idx}", x=x, y=y)
-        if idx < len(products):
-            shelf.products.append(products[idx])
+        # Distribute all products across the 20 shelves
+        shelf.products = [products[p_idx] for p_idx in range(len(products)) if p_idx % len(shelf_coords) == idx]
         env.add_shelf(shelf)
             
     for i in range(5):
@@ -83,6 +83,9 @@ async def run_simulation_loop():
     metrics = MetricsCollector()
     
     while simulation_running:
+        if len(order_manager.pending_orders) < 10:
+            order_manager.generate_random_orders(25, products)
+
         order_manager.dispatch_orders()
         congestion = env.step()
         
@@ -90,25 +93,35 @@ async def run_simulation_loop():
             metrics.record_collision()
             
         for r in env.robots:
-            if r.status == 'charging' and r.battery == 100.0:
-                # Count when charge completes
+            if r.status == 'charging' and r.battery >= 99.0:
                 metrics.record_charging_event()
                 
         order_manager.update_robot_states()
         
         metrics.record_step(env, order_manager.completed_orders)
         
-        # Serialize state and metrics
+        # Serialize state and metrics with real paths and tasks
         state = {
             "tick": env.time_step,
-            "robots": [{"id": r.id, "x": r.x, "y": r.y, "state": r.status, "battery": round(r.battery, 1)} for r in env.robots],
+            "robots": [
+                {
+                    "id": r.id,
+                    "x": r.x,
+                    "y": r.y,
+                    "state": r.status,
+                    "battery": round(r.battery, 1),
+                    "path": list(r.path) if hasattr(r, 'path') and r.path else [],
+                    "task": r.current_task if hasattr(r, 'current_task') else None
+                }
+                for r in env.robots
+            ],
             "shelves": [{"id": s.id, "x": s.x, "y": s.y} for s in env.shelves],
             "stations": [{"id": s.id, "x": s.x, "y": s.y, "type": s.type} for s in env.stations],
             "metrics": metrics.get_metrics()
         }
         
         await manager.broadcast(state)
-        await asyncio.sleep(0.1) # 10 ticks per second
+        await asyncio.sleep(0.3) # Realistic 300ms per grid transition
 
 @app.get("/")
 def read_root():
@@ -127,6 +140,43 @@ async def stop_simulation():
     global simulation_running
     simulation_running = False
     return {"status": "stopped"}
+
+@app.post("/simulation/reset")
+async def reset_simulation():
+    global simulation_running, simulation_task
+    simulation_running = False
+    if simulation_task:
+        simulation_task.cancel()
+        simulation_task = None
+    env, _ = setup_env()
+    state = {
+        "tick": 0,
+        "robots": [
+            {
+                "id": r.id,
+                "x": r.x,
+                "y": r.y,
+                "state": "idle",
+                "battery": 100.0,
+                "path": [],
+                "task": None
+            }
+            for r in env.robots
+        ],
+        "shelves": [{"id": s.id, "x": s.x, "y": s.y} for s in env.shelves],
+        "stations": [{"id": s.id, "x": s.x, "y": s.y, "type": s.type} for s in env.stations],
+        "metrics": {
+            "completed_orders": 0,
+            "average_fulfillment_time": 0.0,
+            "total_distance": 0.0,
+            "collisions": 0,
+            "charging_events": 0,
+            "average_battery": 100.0,
+            "utilization": 0.0
+        }
+    }
+    await manager.broadcast(state)
+    return {"status": "reset", "state": state}
 
 @app.websocket("/ws/state")
 async def websocket_endpoint(websocket: WebSocket):

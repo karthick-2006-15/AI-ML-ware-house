@@ -1,6 +1,12 @@
 import os
+import sys
 import joblib
 import pandas as pd
+
+# Add repository root to sys.path
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 class WarehouseInference:
     def __init__(self):
@@ -15,6 +21,14 @@ class WarehouseInference:
         self.demand_model = joblib.load(os.path.join(models_dir, "demand_model.pkl"))
         self.stockout_model = joblib.load(os.path.join(models_dir, "stockout_model.pkl"))
         self.perf_model = joblib.load(os.path.join(models_dir, "performance_model.pkl"))
+        
+        # Initialize upgraded Predictive Analytics XGBoost engine (0.92 ROC-AUC)
+        try:
+            from predictive_analytics.src.predict import WarehouseRiskPredictor
+            self.risk_predictor = WarehouseRiskPredictor()
+        except Exception as e:
+            print(f"[WarehouseInference] Advanced risk predictor unavailable, using baseline: {e}")
+            self.risk_predictor = None
         
         # Determine feature names (hardcoded from training order)
         self.feature_names = ['stock_level', 'reorder_point', 'reorder_frequency_days', 
@@ -66,10 +80,19 @@ class WarehouseInference:
         
         # Predictions
         demand_pred = float(self.demand_model.predict(X)[0])
-        stockout_prob = float(self.stockout_model.predict_proba(X)[0][1])
         kpi_pred = float(self.perf_model.predict(X)[0])
         
-        risk_level = "HIGH" if stockout_prob > 0.6 else "MEDIUM" if stockout_prob > 0.3 else "LOW"
+        # Use upgraded 0.92 ROC-AUC XGBoost predictor if available
+        if self.risk_predictor is not None:
+            try:
+                risk_res = self.risk_predictor.predict(input_data.copy())
+                stockout_prob = float(risk_res["high_risk_probability"])
+            except Exception:
+                stockout_prob = float(self.stockout_model.predict_proba(X)[0][1])
+        else:
+            stockout_prob = float(self.stockout_model.predict_proba(X)[0][1])
+            
+        risk_level = "HIGH" if stockout_prob >= 0.50 else "MEDIUM" if stockout_prob >= 0.30 else "LOW"
         
         return {
             "demand_forecast": max(0, round(demand_pred, 2)),

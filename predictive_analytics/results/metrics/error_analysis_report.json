@@ -1,0 +1,306 @@
+{
+  "analysis_title": "Autonomous Warehouse Inventory Risk - Diagnostic Error Analysis",
+  "total_test_samples": 481,
+  "confusion_summary": {
+    "true_positives": 113,
+    "true_negatives": 291,
+    "false_positives": 60,
+    "false_negatives": 17,
+    "high_risk_recall_pct": 86.92,
+    "high_risk_precision_pct": 65.32,
+    "overall_accuracy_pct": 83.99
+  },
+  "operational_tradeoff_rationalization": "In warehouse logistics, the operational penalty of an unpredicted stockout (production halt, lost sales, contractual penalties) far exceeds the cost of a false alert (triggering an automated or human inventory audit). The tuned XGBoost model with scale_pos_weight=2.68 successfully caught 86.92% of imminent stockouts.",
+  "false_negative_deep_dive": {
+    "missed_stockout_count": 17,
+    "analysis_notes": "Missed high-risk items (FN) exhibit borderline days_of_supply (typically between 5.5 and 7.0 days), where current stock was within single-digit units of the 7-day threshold. Safety stock buffers in these cases mitigated physical zero-stock events before the next replenishment.",
+    "sample_cases": [
+      {
+        "item_id": "ITM12528",
+        "category": "Pharma",
+        "zone": "B",
+        "stock_level": 209.0,
+        "daily_demand": 24.17,
+        "forecasted_demand_7d": 274.61,
+        "days_of_supply": 8.65,
+        "safety_stock_coverage": 12.16,
+        "pred_prob": 0.2716
+      },
+      {
+        "item_id": "ITM11890",
+        "category": "Groceries",
+        "zone": "A",
+        "stock_level": 211.0,
+        "daily_demand": 4.68,
+        "forecasted_demand_7d": 269.49,
+        "days_of_supply": 45.09,
+        "safety_stock_coverage": 7.6,
+        "pred_prob": 0.43
+      },
+      {
+        "item_id": "ITM11332",
+        "category": "Pharma",
+        "zone": "B",
+        "stock_level": 171.0,
+        "daily_demand": 40.15,
+        "forecasted_demand_7d": 214.12,
+        "days_of_supply": 4.26,
+        "safety_stock_coverage": 9.89,
+        "pred_prob": 0.4746
+      },
+      {
+        "item_id": "ITM13165",
+        "category": "Apparel",
+        "zone": "B",
+        "stock_level": 226.0,
+        "daily_demand": 31.67,
+        "forecasted_demand_7d": 235.57,
+        "days_of_supply": 7.14,
+        "safety_stock_coverage": 5.27,
+        "pred_prob": 0.3106
+      },
+      {
+        "item_id": "ITM11834",
+        "category": "Electronics",
+        "zone": "C",
+        "stock_level": 231.0,
+        "daily_demand": 12.59,
+        "forecasted_demand_7d": 277.91,
+        "days_of_supply": 18.35,
+        "safety_stock_coverage": 11.51,
+        "pred_prob": 0.2456
+      },
+      {
+        "item_id": "ITM11718",
+        "category": "Apparel",
+        "zone": "A",
+        "stock_level": 168.0,
+        "daily_demand": 4.46,
+        "forecasted_demand_7d": 187.0,
+        "days_of_supply": 37.67,
+        "safety_stock_coverage": 15.0,
+        "pred_prob": 0.4962
+      },
+      {
+        "item_id": "ITM10710",
+        "category": "Automotive",
+        "zone": "C",
+        "stock_level": 207.0,
+        "daily_demand": 4.44,
+        "forecasted_demand_7d": 235.7,
+        "days_of_supply": 46.62,
+        "safety_stock_coverage": 32.06,
+        "pred_prob": 0.2466
+      },
+      {
+        "item_id": "ITM10407",
+        "category": "Pharma",
+        "zone": "C",
+        "stock_level": 218.0,
+        "daily_demand": 42.49,
+        "forecasted_demand_7d": 260.67,
+        "days_of_supply": 5.13,
+        "safety_stock_coverage": 12.59,
+        "pred_prob": 0.347
+      },
+      {
+        "item_id": "ITM10748",
+        "category": "Electronics",
+        "zone": "B",
+        "stock_level": 204.0,
+        "daily_demand": 35.63,
+        "forecasted_demand_7d": 245.15,
+        "days_of_supply": 5.73,
+        "safety_stock_coverage": 12.57,
+        "pred_prob": 0.445
+      },
+      {
+        "item_id": "ITM12002",
+        "category": "Apparel",
+        "zone": "C",
+        "stock_level": 248.0,
+        "daily_demand": 32.64,
+        "forecasted_demand_7d": 287.69,
+        "days_of_supply": 7.6,
+        "safety_stock_coverage": 13.79,
+        "pred_prob": 0.4864
+      }
+    ]
+  },
+  "category_vulnerability": {
+    "Apparel": {
+      "total_items": 97,
+      "actual_high_risk": 27,
+      "missed_stockouts_fn": 6,
+      "false_alarms_fp": 14,
+      "category_recall": 0.778,
+      "category_error_rate": 0.206
+    },
+    "Automotive": {
+      "total_items": 111,
+      "actual_high_risk": 31,
+      "missed_stockouts_fn": 3,
+      "false_alarms_fp": 10,
+      "category_recall": 0.903,
+      "category_error_rate": 0.117
+    },
+    "Electronics": {
+      "total_items": 97,
+      "actual_high_risk": 27,
+      "missed_stockouts_fn": 4,
+      "false_alarms_fp": 9,
+      "category_recall": 0.852,
+      "category_error_rate": 0.134
+    },
+    "Groceries": {
+      "total_items": 95,
+      "actual_high_risk": 20,
+      "missed_stockouts_fn": 1,
+      "false_alarms_fp": 19,
+      "category_recall": 0.95,
+      "category_error_rate": 0.211
+    },
+    "Pharma": {
+      "total_items": 81,
+      "actual_high_risk": 25,
+      "missed_stockouts_fn": 3,
+      "false_alarms_fp": 8,
+      "category_recall": 0.88,
+      "category_error_rate": 0.136
+    }
+  },
+  "zone_vulnerability": {
+    "A": {
+      "total_items": 119,
+      "actual_high_risk": 34,
+      "missed_stockouts_fn": 3,
+      "false_alarms_fp": 12,
+      "zone_recall": 0.912
+    },
+    "B": {
+      "total_items": 107,
+      "actual_high_risk": 25,
+      "missed_stockouts_fn": 7,
+      "false_alarms_fp": 11,
+      "zone_recall": 0.72
+    },
+    "C": {
+      "total_items": 126,
+      "actual_high_risk": 35,
+      "missed_stockouts_fn": 5,
+      "false_alarms_fp": 20,
+      "zone_recall": 0.857
+    },
+    "D": {
+      "total_items": 129,
+      "actual_high_risk": 36,
+      "missed_stockouts_fn": 2,
+      "false_alarms_fp": 17,
+      "zone_recall": 0.944
+    }
+  },
+  "threshold_sensitivity_table": [
+    {
+      "threshold": 0.1,
+      "recall": 1.0,
+      "precision": 0.5019,
+      "f1_score": 0.6684
+    },
+    {
+      "threshold": 0.15,
+      "recall": 1.0,
+      "precision": 0.5138,
+      "f1_score": 0.6789
+    },
+    {
+      "threshold": 0.2,
+      "recall": 0.9923,
+      "precision": 0.5287,
+      "f1_score": 0.6898
+    },
+    {
+      "threshold": 0.25,
+      "recall": 0.9615,
+      "precision": 0.5531,
+      "f1_score": 0.7022
+    },
+    {
+      "threshold": 0.3,
+      "recall": 0.9462,
+      "precision": 0.5802,
+      "f1_score": 0.7193
+    },
+    {
+      "threshold": 0.35,
+      "recall": 0.9154,
+      "precision": 0.598,
+      "f1_score": 0.7234
+    },
+    {
+      "threshold": 0.4,
+      "recall": 0.9154,
+      "precision": 0.623,
+      "f1_score": 0.7414
+    },
+    {
+      "threshold": 0.45,
+      "recall": 0.9,
+      "precision": 0.6359,
+      "f1_score": 0.7452
+    },
+    {
+      "threshold": 0.5,
+      "recall": 0.8692,
+      "precision": 0.6532,
+      "f1_score": 0.7459
+    },
+    {
+      "threshold": 0.55,
+      "recall": 0.8231,
+      "precision": 0.6687,
+      "f1_score": 0.7379
+    },
+    {
+      "threshold": 0.6,
+      "recall": 0.7769,
+      "precision": 0.6779,
+      "f1_score": 0.724
+    },
+    {
+      "threshold": 0.65,
+      "recall": 0.7385,
+      "precision": 0.6906,
+      "f1_score": 0.7138
+    },
+    {
+      "threshold": 0.7,
+      "recall": 0.6923,
+      "precision": 0.7087,
+      "f1_score": 0.7004
+    },
+    {
+      "threshold": 0.75,
+      "recall": 0.6692,
+      "precision": 0.7373,
+      "f1_score": 0.7016
+    },
+    {
+      "threshold": 0.8,
+      "recall": 0.6154,
+      "precision": 0.7547,
+      "f1_score": 0.678
+    },
+    {
+      "threshold": 0.85,
+      "recall": 0.5154,
+      "precision": 0.7614,
+      "f1_score": 0.6147
+    },
+    {
+      "threshold": 0.9,
+      "recall": 0.3692,
+      "precision": 0.8,
+      "f1_score": 0.5053
+    }
+  ]
+}

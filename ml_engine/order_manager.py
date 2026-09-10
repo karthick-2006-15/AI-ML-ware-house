@@ -60,8 +60,9 @@ class OrderManager:
                     break
             
             if not target_shelf:
-                # Can't fulfill right now
-                break
+                # Unfulfillable, pop and skip to next pending order
+                self.pending_orders.pop(0)
+                continue
                 
             # Nearest-Robot Selection
             best_robot = None

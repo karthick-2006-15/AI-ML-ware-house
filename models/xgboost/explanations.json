@@ -2,23 +2,27 @@
     "stockout_risk": [
         {
             "feature": "stock_level",
-            "importance": 0.06798875331878662
+            "importance": 0.776
         },
         {
-            "feature": "layout_efficiency_score",
-            "importance": 0.06656414270401001
+            "feature": "safety_stock_coverage",
+            "importance": 0.0805
         },
         {
-            "feature": "turnover_ratio",
-            "importance": 0.06559646874666214
+            "feature": "reorder_buffer_ratio",
+            "importance": 0.0534
         },
         {
-            "feature": "total_orders_last_month",
-            "importance": 0.0645124763250351
+            "feature": "days_of_supply",
+            "importance": 0.0367
         },
         {
             "feature": "daily_demand",
-            "importance": 0.06090622395277023
+            "importance": 0.0305
+        },
+        {
+            "feature": "picking_time_seconds",
+            "importance": 0.0229
         }
     ],
     "performance_kpi": [

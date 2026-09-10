@@ -95,7 +95,25 @@ Autonomous-Warehouse-AI/
 
 ---
 
-## 4. Step-by-Step Reproduction Guide
+## 4. Quick Start — Run Full Application
+
+To launch both the **FastAPI Backend (port 8000)** and **React Dashboard (port 5173)** with automatic browser launch:
+
+```bash
+# Option A: One-click Windows batch launcher
+.\start_system.bat
+
+# Option B: Cross-platform Python launcher
+python run.py
+```
+
+- **Frontend Dashboard**: `http://localhost:5173`
+- **Backend API**: `http://127.0.0.1:8000`
+- **Interactive Swagger Docs**: `http://127.0.0.1:8000/docs`
+
+---
+
+## 5. Step-by-Step Reproduction Guide
 
 ### Step 1: Environment Setup
 ```bash

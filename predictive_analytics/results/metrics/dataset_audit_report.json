@@ -1,0 +1,210 @@
+{
+  "dataset_name": "Warehouse Logistics Operations & Inventory Dataset",
+  "source": "Academic Autonomous Warehouse Management Repository",
+  "rows": 3204,
+  "columns": 23,
+  "target_variable": "stock_risk (0=LOW RISK, 1=HIGH RISK)",
+  "target_definition": "Binary indicator: 1 if current physical stock_level < forecasted_demand_next_7d, else 0",
+  "target_distribution": {
+    "low_risk_count": 2334,
+    "high_risk_count": 870,
+    "high_risk_percentage": 27.15,
+    "imbalance_ratio": 2.68
+  },
+  "missing_values_total": 0,
+  "duplicate_rows": 0,
+  "feature_types": {
+    "item_id": "object",
+    "category": "object",
+    "stock_level": "int64",
+    "reorder_point": "int64",
+    "reorder_frequency_days": "int64",
+    "lead_time_days": "int64",
+    "daily_demand": "float64",
+    "demand_std_dev": "float64",
+    "item_popularity_score": "float64",
+    "storage_location_id": "object",
+    "zone": "object",
+    "picking_time_seconds": "int64",
+    "handling_cost_per_unit": "float64",
+    "unit_price": "float64",
+    "holding_cost_per_unit_day": "float64",
+    "stockout_count_last_month": "int64",
+    "order_fulfillment_rate": "float64",
+    "total_orders_last_month": "int64",
+    "turnover_ratio": "float64",
+    "layout_efficiency_score": "float64",
+    "last_restock_date": "object",
+    "forecasted_demand_next_7d": "float64",
+    "KPI_score": "float64"
+  },
+  "numeric_statistics": {
+    "stock_level": {
+      "min": 20.0,
+      "median": 264.0,
+      "max": 499.0,
+      "mean": 263.492,
+      "std": 138.568,
+      "iqr_outliers": 0
+    },
+    "reorder_point": {
+      "min": 10.0,
+      "median": 55.0,
+      "max": 99.0,
+      "mean": 54.759,
+      "std": 26.053,
+      "iqr_outliers": 0
+    },
+    "reorder_frequency_days": {
+      "min": 3.0,
+      "median": 9.0,
+      "max": 14.0,
+      "mean": 8.508,
+      "std": 3.473,
+      "iqr_outliers": 0
+    },
+    "lead_time_days": {
+      "min": 2.0,
+      "median": 6.0,
+      "max": 9.0,
+      "mean": 5.578,
+      "std": 2.292,
+      "iqr_outliers": 0
+    },
+    "daily_demand": {
+      "min": 1.01,
+      "median": 25.405,
+      "max": 49.98,
+      "mean": 25.436,
+      "std": 14.039,
+      "iqr_outliers": 0
+    },
+    "demand_std_dev": {
+      "min": 0.5,
+      "median": 5.235,
+      "max": 10.0,
+      "mean": 5.26,
+      "std": 2.726,
+      "iqr_outliers": 0
+    },
+    "item_popularity_score": {
+      "min": 0.1,
+      "median": 0.54,
+      "max": 1.0,
+      "mean": 0.542,
+      "std": 0.259,
+      "iqr_outliers": 0
+    },
+    "picking_time_seconds": {
+      "min": 10.0,
+      "median": 96.0,
+      "max": 179.0,
+      "mean": 95.606,
+      "std": 49.218,
+      "iqr_outliers": 0
+    },
+    "handling_cost_per_unit": {
+      "min": 0.5,
+      "median": 2.81,
+      "max": 5.0,
+      "mean": 2.777,
+      "std": 1.305,
+      "iqr_outliers": 0
+    },
+    "unit_price": {
+      "min": 10.22,
+      "median": 106.005,
+      "max": 200.0,
+      "mean": 105.888,
+      "std": 54.428,
+      "iqr_outliers": 0
+    },
+    "holding_cost_per_unit_day": {
+      "min": 0.1,
+      "median": 1.05,
+      "max": 2.0,
+      "mean": 1.046,
+      "std": 0.55,
+      "iqr_outliers": 0
+    },
+    "stockout_count_last_month": {
+      "min": 0.0,
+      "median": 5.0,
+      "max": 9.0,
+      "mean": 4.602,
+      "std": 2.884,
+      "iqr_outliers": 0
+    },
+    "order_fulfillment_rate": {
+      "min": 0.7,
+      "median": 0.85,
+      "max": 1.0,
+      "mean": 0.85,
+      "std": 0.087,
+      "iqr_outliers": 0
+    },
+    "total_orders_last_month": {
+      "min": 50.0,
+      "median": 513.5,
+      "max": 999.0,
+      "mean": 521.715,
+      "std": 276.769,
+      "iqr_outliers": 0
+    },
+    "turnover_ratio": {
+      "min": 1.0,
+      "median": 8.15,
+      "max": 15.0,
+      "mean": 8.124,
+      "std": 4.069,
+      "iqr_outliers": 0
+    },
+    "layout_efficiency_score": {
+      "min": 0.2,
+      "median": 0.6,
+      "max": 1.0,
+      "mean": 0.601,
+      "std": 0.231,
+      "iqr_outliers": 0
+    },
+    "forecasted_demand_next_7d": {
+      "min": 10.09,
+      "median": 152.87,
+      "max": 299.94,
+      "mean": 154.286,
+      "std": 82.945,
+      "iqr_outliers": 0
+    },
+    "KPI_score": {
+      "min": 0.259,
+      "median": 0.601,
+      "max": 0.936,
+      "mean": 0.602,
+      "std": 0.108,
+      "iqr_outliers": 6
+    },
+    "stock_risk": {
+      "min": 0.0,
+      "median": 0.0,
+      "max": 1.0,
+      "mean": 0.272,
+      "std": 0.445,
+      "iqr_outliers": 0
+    }
+  },
+  "categorical_distributions": {
+    "category": {
+      "Pharma": 660,
+      "Automotive": 658,
+      "Electronics": 651,
+      "Groceries": 618,
+      "Apparel": 617
+    },
+    "zone": {
+      "D": 833,
+      "A": 812,
+      "B": 784,
+      "C": 775
+    }
+  }
+}
