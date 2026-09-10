@@ -10,8 +10,10 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const [apiUrl, setApiUrl] = useState('http://localhost:8000');
-  const [wsUrl, setWsUrl] = useState('ws://localhost:8000/ws/state');
+  const [apiUrl, setApiUrl] = useState(import.meta.env.VITE_API_URL || 'http://localhost:8000');
+  const [wsUrl, setWsUrl] = useState(
+    (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('http://', 'ws://').replace('https://', 'wss://') : 'ws://localhost:8000') + '/ws/state'
+  );
   const [simSpeed, setSimSpeed] = useState('1.0x');
   const [confThreshold, setConfThreshold] = useState('0.45');
   const [saved, setSaved] = useState(false);

@@ -26,7 +26,9 @@ const WarehouseGrid: React.FC<WarehouseGridProps> = ({ onStateUpdate }) => {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8000/ws/state');
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+    const wsBaseUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+    const ws = new WebSocket(`${wsBaseUrl}/ws/state`);
     
     ws.onopen = () => setConnected(true);
     ws.onclose = () => setConnected(false);

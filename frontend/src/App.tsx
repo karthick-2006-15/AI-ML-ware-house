@@ -99,7 +99,8 @@ const App: React.FC = () => {
       } catch (e) {
         // fallback to direct backend if proxy is not yet ready
         try {
-          const res = await fetch('http://127.0.0.1:8000/api/ml/status');
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+          const res = await fetch(`${apiUrl}/api/ml/status`);
           if (res.ok) {
             const data = await res.json();
             setSysStatus(data);
@@ -114,20 +115,50 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // 2. WebSocket for Live Simulation Telemetry
+  // 2. Fetch Initial Simulation State & Connect WebSocket for Live Telemetry
   useEffect(() => {
+    // Immediate initial state fetch
+    const fetchInitState = async () => {
+      try {
+        const res = await fetch('/simulation/state');
+        if (res.ok) {
+          const data: SimState = await res.json();
+          setSimState(data);
+          if (data.running !== undefined) setSimRunning(data.running);
+        }
+      } catch (e) {
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+          const res = await fetch(`${apiUrl}/simulation/state`);
+          if (res.ok) {
+            const data: SimState = await res.json();
+            setSimState(data);
+            if (data.running !== undefined) setSimRunning(data.running);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+    fetchInitState();
+
     let ws: WebSocket | null = null;
     let retryTimer: any = null;
 
     const connectWs = () => {
       try {
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${wsProtocol}//${window.location.host}/ws/state`;
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+        const wsBaseUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+        const wsUrl = `${wsBaseUrl}/ws/state`;
         ws = new WebSocket(wsUrl);
         ws.onmessage = (event) => {
           try {
             const state: SimState = JSON.parse(event.data);
             setSimState(state);
+            if (state.running !== undefined) {
+              setSimRunning(state.running);
+            }
           } catch (e) {
             console.error('Failed to parse sim state WebSocket message:', e);
           }
