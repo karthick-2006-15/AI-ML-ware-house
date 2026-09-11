@@ -1,17 +1,43 @@
-# Autonomous Warehouse AI — YOLO Object Detection Pipeline
+# Autonomous Warehouse AI — YOLO Object Detection & Simulation Pipeline
 
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-31011/)
 [![Ultralytics YOLOv8](https://img.shields.io/badge/YOLO-v8.4-red.svg)](https://github.com/ultralytics/ultralytics)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-orange.svg)](https://pytorch.org/)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
-An academic-grade, end-to-end Computer Vision system for autonomous warehouse operations. This repository contains the complete ML lifecycle: **raw dataset audit, data cleaning, class harmonization, leak-free train/val/test splitting, multi-experiment fine-tuning, quantitative evaluation on isolated test sets, error analysis across 6 failure modes, and multi-source real-time inference.**
+An academic-grade, end-to-end Computer Vision system for autonomous warehouse operations. This repository contains the complete ML lifecycle alongside a highly interactive simulation dashboard and predictive analytics engine.
 
 ---
 
-## 1. Project Objective & Standardized Class Taxonomy
+## 1. Problem Statement
+Modern warehouses and logistics centers face significant challenges in tracking dynamic inventory, ensuring worker safety, and optimizing the routing of Autonomous Mobile Robots (AMRs) and forklifts. Manual monitoring is error-prone, unscalable, and often leads to traffic bottlenecks or safety hazards. 
 
-The system detects **six primary warehouse classes** critical for safety, navigation, and inventory management:
+**The Goal**: Develop a real-time, highly accurate object detection pipeline integrated with a live digital-twin simulation and predictive analytics dashboard. This system must track workers, products, and robots simultaneously, predict zone congestion, and dynamically coordinate fleet logistics to maximize operational efficiency and safety.
+
+---
+
+## 2. Core Features
+- 🎯 **Real-Time Object Detection**: High-accuracy detection of 6 critical warehouse entities (Person, Box, Pallet, Forklift, AMR Robot, Robotic Arm) using YOLOv8.
+- 📊 **Interactive Cinematic Dashboard**: A React-based web UI with live metrics, system health snapshots, and interactive data visualization.
+- 🤖 **Warehouse Simulation Engine**: Integrated Multi-Agent Pathfinding (A* algorithm) and robot coordination simulating a live warehouse environment.
+- 🧠 **Predictive Analytics**: XGBoost integration to forecast demand, predict zone congestion, and evaluate robotic performance.
+- ☁️ **Cloud-Ready Deployment**: Configured for 1-click deployment on Render (FastAPI Backend) and Vercel (React Frontend) via environment variables and `render.yaml`.
+- 📹 **Live Vision Feed**: Process webcams, CCTV streams, and local videos in real-time straight through the frontend dashboard.
+- 📈 **Extensive ML Pipelines**: Automated data cleaning, bounding-box aspect ratio auditing, class balancing, multi-experiment training, and isolated testing.
+
+---
+
+## 3. Dataset Description & Standardized Class Taxonomy
+
+The model is trained on a highly curated, unified dataset designed for robust performance in industrial environments.
+
+### Dataset Overview
+- **Raw Data Scale**: 11,304 total raw images from industrial settings.
+- **Bounding Boxes**: Over 309,000 raw bounding box annotations.
+- **Data Quality Actions**: Removed 330 exact duplicates, converted 267 polygon segmentation annotations to bounding boxes, purged irrelevant classes (`cart`, `white_roll`), and harmonized taxonomy.
+- **Standardized Splits**: Seeded at `42` with 0% data leakage across **Train (70%), Validation (15%), and Test (15%)**.
+
+### Class Taxonomy
 
 | Class ID | Class Name | Definition & Warehouse Scope |
 |---|---|---|
@@ -22,80 +48,42 @@ The system detects **six primary warehouse classes** critical for safety, naviga
 | **4** | `robot` | Autonomous mobile robots (AMRs), Automated Guided Vehicles (AGVs) |
 | **5** | `robotic_arm` | Stationary and articulated robotic arms/manipulators |
 
----
-
-## 2. Dataset Sources & Origin
-
-1. **Warehouse Multi-Class Dataset**:
-   - **Source**: Roboflow Universe (`karthick-thangadurai/warehouse-vz8e0-hgmnc`)
-   - **Scale**: 7,886 images (all 640x640 resolution), 304,913 raw bounding boxes.
-   - **Classes Used**: `person` (raw 4 $\to$ 0), `box` (raw 0 $\to$ 1), `pallets` (raw 3 $\to$ 2), `forklift` (raw 2 $\to$ 3), `robot` (raw 5 $\to$ 4).
-   - **Classes Purged**: `cart` (65 items, out of scope), `white_roll` (2,346 items, out of scope).
-
-2. **Robotic Arm Dataset**:
-   - **Source**: Roboflow Universe (`label-nhdaa/robotic-arm-0r333`)
-   - **License**: Creative Commons Attribution 4.0 International (CC BY 4.0).
-   - **Scale**: 3,418 images (640x640 resolution), 4,368 bounding boxes.
-   - **Class Used**: `Robotic-arm` (raw 0 $\to$ 5: `robotic_arm`).
-   - **Quality Action**: Deduplicated 330 identical images resulting from offline rotation/flip augmentations.
+*(Datasets sourced from Roboflow Universe under CC BY 4.0 licenses).*
 
 ---
 
-## 3. Project Directory Architecture
+## 4. Project Directory Architecture
 
 ```
 Autonomous-Warehouse-AI/
 │
+├── frontend/                # React/Vite/Tailwind Cinematic Web Dashboard
+├── backend/                 # FastAPI REST & WebSocket Backend Server
+├── ml_engine/               # Multi-robot A* Pathfinding and Coordinators
+├── simulation/              # Digital-Twin 2D Warehouse Environment
+├── predictive_analytics/    # XGBoost Demand Forecasting and Zone Intelligence
+│
 ├── data/
-│   ├── raw/
-│   │   ├── warehouse_robot_raw/     # Pristine raw warehouse dataset (7,886 images)
-│   │   └── robotic_arm_raw/         # Pristine raw robotic arm dataset (3,418 images)
-│   └── processed/
-│       ├── warehouse_cleaned/       # Unified cleaned dataset pool (10,691 images)
-│       ├── warehouse_yolo/          # Standard 70/15/15 split (Train: 7489, Val: 1601, Test: 1601)
-│       └── warehouse_yolo_balanced/ # Curated balanced split (Train: 4752, Val: 1010, Test: 1601)
+│   ├── raw/                 # Pristine raw image datasets
+│   └── processed/           # Cleaned, unified, and balanced YOLO datasets
 │
-├── notebooks/
-│   ├── 01_dataset_audit.ipynb       # Statistical audit & exploratory data analysis
-│   ├── 02_annotation_analysis.ipynb # Annotation inspection, cleaning, & split validation
-│   ├── 03_training_experiments.ipynb# Multi-experiment fine-tuning & loss curve analysis
-│   └── 04_evaluation_error_analysis.ipynb # Test benchmarking, error taxonomy, & live demo
+├── notebooks/               # Jupyter notebooks for Data Audit, Training, & Evaluation
 │
-├── src/
-│   ├── dataset_audit.py             # Raw data audit & publication plot generator
-│   ├── clean_dataset.py             # Deduplication, polygon conversion, class harmonization
-│   ├── prepare_yolo_dataset.py      # Standard & balanced YOLO split creation (seed=42)
-│   ├── split_dataset.py             # Split verification entrypoint
-│   ├── train.py                     # Multi-experiment fine-tuning engine & experiment_log.csv logger
-│   ├── evaluate.py                  # Evaluation on untouched test set with per-class metrics
-│   ├── error_analysis.py            # Failure diagnosis across 6 failure modes with visual outputs
-│   └── inference.py                 # Multi-input inference engine (image, folder, video, webcam)
+├── src/                     # Core ML scripts for cleaning, auditing, training, & testing
+├── configs/                 # YAML configurations for YOLO and hyperparameters
+├── models/                  # Saved weights (Baseline, Experiments, Final)
+├── results/                 # Publication figures, matrices, JSON metrics, and failure cases
 │
-├── configs/
-│   ├── data.yaml                    # YOLO configuration (Standard 6-class dataset)
-│   ├── data_balanced.yaml           # YOLO configuration (Curated balanced dataset)
-│   ├── hyp_baseline.yaml            # Baseline Ultralytics hyperparameters
-│   └── hyp_augmented.yaml           # Warehouse-specific domain augmentations
-│
-├── models/
-│   ├── baseline/                    # Experiment 1 (YOLOv8n Baseline)
-│   ├── experiments/                 # Experiment 2 (Balanced) & Experiment 3 (Augmented)
-│   └── final/                       # Experiment 4 (YOLOv8s Architecture Scaling)
-│
-├── results/
-│   ├── figures/                     # Publication figures (class dist, PR curves, confusion matrices)
-│   ├── metrics/                     # Detailed JSON evaluation reports
-│   ├── predictions/                 # Visual predictions
-│   └── failure_cases/               # Visual error analysis samples
-│
-├── experiment_log.csv               # Formal experiment tracking matrix
-├── requirements.txt                 # Environment dependencies
-└── README.md                        # Project documentation
+├── start_system.bat         # 1-Click Windows Launcher (Starts all services)
+├── run.py                   # Cross-Platform Python Launcher
+├── render.yaml              # Render Cloud Deployment configuration
+├── requirements.txt         # Environment dependencies
+└── README.md                # Project documentation
 ```
 
 ---
 
-## 4. Quick Start — Run Full Application
+## 5. Quick Start — Run Full Application Locally
 
 To launch both the **FastAPI Backend (port 8000)** and **React Dashboard (port 5173)** with automatic browser launch:
 
@@ -113,7 +101,7 @@ python run.py
 
 ---
 
-## 5. Step-by-Step Reproduction Guide
+## 6. Step-by-Step Reproduction Guide
 
 ### Step 1: Environment Setup
 ```bash
@@ -131,19 +119,12 @@ Audits all 11,304 raw images, verifies file integrity, detects duplicates, and p
 ```bash
 python src/dataset_audit.py
 ```
-*Generated Figures*:
-- `results/figures/class_distribution.png`: Linear and Log-scale class instance frequencies.
-- `results/figures/bbox_size_distribution.png`: Bounding box area percentage distribution.
-- `results/figures/bbox_aspect_ratios.png`: Bounding box width vs. height scatter and aspect ratio histogram.
-- `results/figures/objects_per_image.png`: Density of objects per scene.
-- `results/figures/sample_annotated_images.png`: Ground-truth inspection grid for all 6 classes.
 
 ### Step 3: Clean and Harmonize Annotations
-Deduplicates exact images, converts 267 polygon segmentation annotations to enclosing bounding boxes, removes non-target classes (`cart`, `white_roll`), and normalizes coordinates:
+Deduplicates exact images, converts polygon segmentation annotations to bounding boxes, removes non-target classes, and normalizes coordinates:
 ```bash
 python src/clean_dataset.py
 ```
-*Output*: Cleaned images in `data/processed/warehouse_cleaned/` and report at `results/metrics/dataset_cleaning_report.json`.
 
 ### Step 4: Generate YOLO Train/Val/Test Splits
 Partitions data into **70% Train, 15% Validation, and 15% Test** using random seed 42 with zero data leakage:
@@ -153,18 +134,10 @@ python src/prepare_yolo_dataset.py
 
 ### Step 5: Reproduce the 4 Controlled Experiments
 Run the training matrix programmatically via `src/train.py`:
-
 ```bash
-# Experiment 1: Baseline fine-tuning (YOLOv8n, standard cleaned pool)
 python src/train.py --experiment 1 --epochs 15 --batch 16 --imgsz 640
-
-# Experiment 2: Curated class-balanced fine-tuning (YOLOv8n, balanced pool)
 python src/train.py --experiment 2 --epochs 15 --batch 16 --imgsz 640
-
-# Experiment 3: Warehouse domain-specific augmentations (YOLOv8n, augmented hyp)
 python src/train.py --experiment 3 --epochs 15 --batch 16 --imgsz 640
-
-# Experiment 4: Model architecture scaling (YOLOv8s, balanced pool + augmented hyp)
 python src/train.py --experiment 4 --epochs 15 --batch 16 --imgsz 640
 ```
 All training parameters and validation results are automatically recorded in `experiment_log.csv`.
@@ -174,43 +147,27 @@ Benchmark any trained model against the untouched 1,601 test images:
 ```bash
 python src/evaluate.py --model models/final/weights/best.pt --data configs/data.yaml --split test
 ```
-*Output*: Detailed per-class precision, recall, mAP@50, and mAP@50:95 saved to `results/metrics/final_evaluation_metrics.json` and plotted to `results/figures/final_evaluation_per_class.png`.
 
 ### Step 7: Perform Error Analysis
 Diagnose model failure modes across 6 categories:
 ```bash
 python src/error_analysis.py --model models/final/weights/best.pt
 ```
-*Output*: Visualized failure cases saved to `results/failure_cases/` and diagnostic summary to `results/metrics/error_analysis_report.json`.
 
 ### Step 8: Multi-Input Live Demonstration
 Run real-time inference on an image, directory, video, or webcam:
 ```bash
-# Single image inference
-python src/inference.py --source data/processed/warehouse_yolo/images/test/wh_000002_jpg.rf.3a7690ed77a46141febfed8023db462f.jpg
-
-# Batch directory inference
-python src/inference.py --source data/processed/warehouse_yolo/images/test --output results/predictions
-
-# Video or webcam inference
-python src/inference.py --source warehouse_cctv.mp4
 python src/inference.py --source 0  # Live webcam
 ```
 
 ---
 
-## 5. Summary of Experimental Results
-
-| Experiment ID | Model Configuration | Dataset Version | Augmentations | Parameters | mAP@50 | mAP@50:95 | Precision | Recall |
-|---|---|---|---|---|---|---|---|---|
-| **EXP-01** | YOLOv8n (Nano) | Standard Cleaned | Baseline Default | 3.01M | *Evaluated* | *Evaluated* | *Evaluated* | *Evaluated* |
-| **EXP-02** | YOLOv8n (Nano) | Curated Balanced | Baseline Default | 3.01M | *Evaluated* | *Evaluated* | *Evaluated* | *Evaluated* |
-| **EXP-03** | YOLOv8n (Nano) | Curated Balanced | Warehouse Domain | 3.01M | *Evaluated* | *Evaluated* | *Evaluated* | *Evaluated* |
-| **EXP-04** | YOLOv8s (Small) | Curated Balanced | Warehouse Domain | 11.14M | *Evaluated* | *Evaluated* | *Evaluated* | *Evaluated* |
-
-*(Exact empirical measurements are logged in `experiment_log.csv` upon completion).*
+## 7. Cloud Deployment (Vercel & Render)
+This application is configured for standard cloud deployment. 
+1. **Backend**: Connect your GitHub repository to [Render](https://render.com) using the provided `render.yaml` as a Blueprint.
+2. **Frontend**: Connect to [Vercel](https://vercel.com), set the root directory to `frontend`, and provide the `VITE_API_URL` environment variable pointing to your Render backend.
 
 ---
 
-## 6. Academic Integrity & Reproducibility Statement
+## 8. Academic Integrity & Reproducibility Statement
 All metrics, graphs, bounding box statistics, and error logs presented in this project are generated strictly from empirical training and validation on genuine warehouse image data. No synthetic metrics, mock statistics, or pretrained COCO mock evaluations were used as substitute for real model fine-tuning.
