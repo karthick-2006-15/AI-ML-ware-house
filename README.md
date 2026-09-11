@@ -5,22 +5,33 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-orange.svg)](https://pytorch.org/)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
-An academic-grade, end-to-end Computer Vision system for autonomous warehouse operations. This repository contains the complete ML lifecycle alongside a highly interactive simulation dashboard and predictive analytics engine.
+An academic-grade, end-to-end Computer Vision and Machine Learning system for autonomous warehouse operations. This repository contains a complete ML lifecycle alongside a highly interactive simulation dashboard, autonomous pathfinding, and predictive analytics engine.
 
 ---
 
 ## 1. Problem Statement
-Modern warehouses and logistics centers face significant challenges in tracking dynamic inventory, ensuring worker safety, and optimizing the routing of Autonomous Mobile Robots (AMRs) and forklifts. Manual monitoring is error-prone, unscalable, and often leads to traffic bottlenecks or safety hazards. 
 
-**The Goal**: Develop a real-time, highly accurate object detection pipeline integrated with a live digital-twin simulation and predictive analytics dashboard. This system must track workers, products, and robots simultaneously, predict zone congestion, and dynamically coordinate fleet logistics to maximize operational efficiency and safety.
+Modern warehouses and massive logistics centers face interconnected, dynamic challenges that cannot be solved by a single technology. Manual monitoring and disjointed systems lead to fatal accidents, delayed orders, and traffic gridlocks. This project solves three core pillars of warehouse automation:
+
+1. **Blind Spots in Operational Visibility (Solved by YOLOv8)**
+   - *Problem*: Inability to accurately and instantly track human workers, packages, empty pallets, and heavy machinery (forklifts, robotic arms).
+   - *Solution*: A highly optimized, real-time YOLOv8 object detection pipeline monitoring the floor through CCTV feeds, tracking 6 critical industrial classes simultaneously.
+
+2. **Inefficient Routing & Traffic Bottlenecks (Solved by A* Pathfinding)**
+   - *Problem*: Autonomous Mobile Robots (AMRs) taking suboptimal paths, colliding with dynamic obstacles, and creating traffic jams during high-volume periods.
+   - *Solution*: A Multi-Agent Simulation Engine using **A* (A-Star) Pathfinding** and intelligent spatial coordination. Robots dynamically calculate the shortest paths, avoid dropped obstacles in real-time, and reroute automatically.
+
+3. **Unpredictable Supply Chains & Congestion (Solved by XGBoost Analytics)**
+   - *Problem*: Reactive planning leads to stockouts, unexpected hardware failures, and severe zone overcrowding.
+   - *Solution*: A Predictive Analytics Engine powered by **XGBoost**. It processes historical telemetry and logistics data to forecast future product demand, predict zone-level congestion risk, and alert operators to potential stockouts before they happen.
 
 ---
 
 ## 2. Core Features
 - 🎯 **Real-Time Object Detection**: High-accuracy detection of 6 critical warehouse entities (Person, Box, Pallet, Forklift, AMR Robot, Robotic Arm) using YOLOv8.
+- 🤖 **Warehouse Simulation Engine**: Integrated **A* Pathfinding** and multi-robot coordination simulating a live warehouse environment.
+- 🧠 **Predictive Analytics**: **XGBoost** integration to forecast demand, predict zone congestion, and evaluate robotic performance based on historical logs.
 - 📊 **Interactive Cinematic Dashboard**: A React-based web UI with live metrics, system health snapshots, and interactive data visualization.
-- 🤖 **Warehouse Simulation Engine**: Integrated Multi-Agent Pathfinding (A* algorithm) and robot coordination simulating a live warehouse environment.
-- 🧠 **Predictive Analytics**: XGBoost integration to forecast demand, predict zone congestion, and evaluate robotic performance.
 - ☁️ **Cloud-Ready Deployment**: Configured for 1-click deployment on Render (FastAPI Backend) and Vercel (React Frontend) via environment variables and `render.yaml`.
 - 📹 **Live Vision Feed**: Process webcams, CCTV streams, and local videos in real-time straight through the frontend dashboard.
 - 📈 **Extensive ML Pipelines**: Automated data cleaning, bounding-box aspect ratio auditing, class balancing, multi-experiment training, and isolated testing.
@@ -29,15 +40,29 @@ Modern warehouses and logistics centers face significant challenges in tracking 
 
 ## 3. Dataset Description & Standardized Class Taxonomy
 
-The model is trained on a highly curated, unified dataset designed for robust performance in industrial environments.
+To power the diverse machine learning engines in this project, multiple distinct datasets were combined.
 
-### Dataset Overview
-- **Raw Data Scale**: 11,304 total raw images from industrial settings.
-- **Bounding Boxes**: Over 309,000 raw bounding box annotations.
-- **Data Quality Actions**: Removed 330 exact duplicates, converted 267 polygon segmentation annotations to bounding boxes, purged irrelevant classes (`cart`, `white_roll`), and harmonized taxonomy.
-- **Standardized Splits**: Seeded at `42` with 0% data leakage across **Train (70%), Validation (15%), and Test (15%)**.
+### Vision Datasets (Used for YOLOv8)
+1. **Warehouse Multi-Class Dataset**
+   - **Name**: `warehouse-vz8e0-hgmnc`
+   - **Source**: Roboflow Universe (Creator: `karthick-thangadurai`)
+   - **Scale**: 7,886 images with over 304,000 raw bounding boxes.
+2. **Robotic Arm Dataset**
+   - **Name**: `robotic-arm-0r333`
+   - **Source**: Roboflow Universe (Creator: `label-nhdaa`)
+   - **Scale**: 3,418 images with 4,368 bounding boxes.
+   
+*Data Quality Actions*: Removed 330 exact duplicates, converted 267 polygon segmentation annotations to bounding boxes, purged irrelevant classes (`cart`, `white_roll`), and harmonized taxonomy into a single cohesive dataset.
 
-### Class Taxonomy
+### Analytics Datasets (Used for XGBoost)
+1. **Warehouse Logistics Dataset**
+   - **Name**: `logistics_dataset.csv` (Located in `data/raw/warehouse/`)
+   - **Purpose**: Tracks daily demand, stock levels, lead times, and picking times to train the XGBoost Demand & Stockout forecaster.
+2. **Robot Telemetry & System Metrics**
+   - **Name**: `robot_telemetry.csv` and `system_metrics.csv` (Located in `data/raw/robot_failure/`)
+   - **Purpose**: Time-series hardware telemetry (battery, motor temps, wear and tear) to predict hardware failures and evaluate performance KPIs.
+
+### Vision Class Taxonomy
 
 | Class ID | Class Name | Definition & Warehouse Scope |
 |---|---|---|
@@ -47,8 +72,6 @@ The model is trained on a highly curated, unified dataset designed for robust pe
 | **3** | `forklift` | Industrial forklifts, reach trucks, and order pickers |
 | **4** | `robot` | Autonomous mobile robots (AMRs), Automated Guided Vehicles (AGVs) |
 | **5** | `robotic_arm` | Stationary and articulated robotic arms/manipulators |
-
-*(Datasets sourced from Roboflow Universe under CC BY 4.0 licenses).*
 
 ---
 
@@ -64,7 +87,7 @@ Autonomous-Warehouse-AI/
 ├── predictive_analytics/    # XGBoost Demand Forecasting and Zone Intelligence
 │
 ├── data/
-│   ├── raw/                 # Pristine raw image datasets
+│   ├── raw/                 # Raw Roboflow images & XGBoost CSV Datasets
 │   └── processed/           # Cleaned, unified, and balanced YOLO datasets
 │
 ├── notebooks/               # Jupyter notebooks for Data Audit, Training, & Evaluation
