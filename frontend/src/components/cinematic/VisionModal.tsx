@@ -9,7 +9,7 @@ import {
   Radio 
 } from 'lucide-react';
 import Badge from '../common/Badge';
-import { apiService } from '../../services/api';
+import { getApiUrl } from '../../config/api';
 import type { VisionDetection, VisionResult } from '../../types';
 
 interface VisionModalProps {
@@ -218,12 +218,13 @@ export const VisionModal: React.FC<VisionModalProps> = ({
       const t0 = performance.now();
       try {
         const b64 = sourceCanvas.toDataURL('image/jpeg', 0.6);
-        const data: VisionResult = await apiService.detectFrame(
-          b64, 
-          0.30, 
-          sourceMode === 'cctv' ? selectedChannel.sampleFile : 'webcam'
-        );
-        if (active) {
+        const res = await fetch(getApiUrl('/api/ml/detect_frame'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: b64, confidence: 0.30, render_annotated: false }),
+        });
+        if (res.ok && active) {
+          const data: VisionResult = await res.json();
           const latency = Math.round(performance.now() - t0);
           setLatencyMs(latency);
           setDetections(data.detections || []);

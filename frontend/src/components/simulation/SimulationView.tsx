@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import ProgressBar from '../common/ProgressBar';
 import WarehouseCanvas from './WarehouseCanvas';
-import { apiService } from '../../services/api';
+import { getApiUrl } from '../../config/api';
 import type { 
   SimState, 
   SimMetrics, 
@@ -98,52 +98,65 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
 
   const timelineContainerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch scenarios catalog safely
+  // Fetch scenarios catalog from backend
   useEffect(() => {
-    let mounted = true;
-    apiService.getScenarios()
+    fetch(getApiUrl('/simulation/scenarios'))
+      .then(res => res.json())
       .then(data => {
-        if (mounted && data) {
-          const list = Array.isArray(data) ? data : (data as any)?.scenarios;
-          if (Array.isArray(list) && list.length > 0) {
-            setScenarios(list);
-          }
-        }
+        if (data.scenarios) setScenarios(data.scenarios);
       })
       .catch(() => {
-        if (mounted) setScenarios(DEFAULT_SCENARIOS);
+        setScenarios(DEFAULT_SCENARIOS);
       });
-    return () => { mounted = false; };
   }, []);
 
   // Sync backend events into timeline log
   useEffect(() => {
-    const events = simState?.timeline_events || simState?.events;
-    if (events && events.length > 0) {
+    if (simState?.events && simState.events.length > 0) {
       setEventsLog(prev => {
-        const newEvents = events.filter(e => !prev.some(p => p.id === e.id));
+        const newEvents = simState.events!.filter(e => !prev.some(p => p.id === e.id));
         if (newEvents.length === 0) return prev;
         const updated = [...newEvents, ...prev].slice(0, 50);
         return updated;
       });
     }
-  }, [simState?.timeline_events, simState?.events, simState?.tick]);
+  }, [simState?.events, simState?.tick]);
 
   // Handler: Speed change
   const handleSetSpeed = async (speed: number) => {
     setSimSpeed(speed);
-    await apiService.setSimulationSpeed(speed);
+    try {
+      await fetch(getApiUrl('/simulation/speed'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ speed }),
+      });
+    } catch (e) {
+      console.error('Failed to update speed:', e);
+    }
   };
 
   // Handler: Step simulation
   const handleStepSim = async () => {
-    await apiService.stepSimulation();
+    try {
+      await fetch(getApiUrl('/simulation/step'), { method: 'POST' });
+    } catch (e) {
+      console.error('Failed to step simulation:', e);
+    }
   };
 
   // Handler: Load scenario
   const handleSelectScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
-    await apiService.applyScenario(scenarioId);
+    try {
+      await fetch(getApiUrl('/simulation/scenario'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenario_id: scenarioId }),
+      });
+    } catch (e) {
+      console.error('Failed to load scenario:', e);
+    }
   };
 
   // Handler: Canvas Grid Cell Click (Warehouse Editor)
@@ -152,8 +165,17 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
 
     if (tool === 'dynamic_obstacle') {
       try {
-        await apiService.addObstacle(gridX, gridY, 80, 'spill');
-        setEditorFeedback(`Dynamic obstacle dropped at (${gridX}, ${gridY}).`);
+        const res = await fetch(getApiUrl('/simulation/obstacle'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ x: gridX, y: gridY, duration: 80, obstacle_type: 'spill' }),
+        });
+        if (res.ok) {
+          setEditorFeedback(`Dynamic obstacle dropped at (${gridX}, ${gridY}).`);
+        } else {
+          const err = await res.json();
+          setEditorFeedback(err.detail || 'Cannot place obstacle here.');
+        }
       } catch (e) {
         setEditorFeedback('Failed to place obstacle.');
       }
@@ -161,51 +183,63 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
     }
 
     try {
-      if (!apiService.isStandalone()) {
-        const res = await fetch(`${apiService.getBaseUrl()}/simulation/edit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: tool === 'delete' ? 'delete' : 'place',
-            type: tool,
-            x: gridX,
-            y: gridY,
-          }),
-        });
-        if (res.ok) {
-          setEditorFeedback(`${tool === 'delete' ? 'Deleted item' : 'Placed ' + tool} at (${gridX}, ${gridY}).`);
-        } else {
-          setEditorFeedback('Invalid placement position.');
-        }
-      } else {
+      const res = await fetch(getApiUrl('/simulation/edit'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: tool === 'delete' ? 'delete' : 'place',
+          type: tool,
+          x: gridX,
+          y: gridY,
+        }),
+      });
+      if (res.ok) {
         setEditorFeedback(`${tool === 'delete' ? 'Deleted item' : 'Placed ' + tool} at (${gridX}, ${gridY}).`);
+      } else {
+        const err = await res.json();
+        setEditorFeedback(err.detail || 'Invalid placement position.');
       }
     } catch (e) {
-      setEditorFeedback('Edit request completed.');
+      setEditorFeedback('Edit request failed.');
     }
   };
 
   // Handler: Clear all dynamic obstacles
   const handleClearObstacles = async () => {
-    await apiService.clearObstacles();
-    setEditorFeedback('Cleared all dynamic obstacles.');
+    try {
+      await fetch(getApiUrl('/simulation/obstacle'), {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      setEditorFeedback('Cleared all dynamic obstacles.');
+    } catch (e) {
+      console.error('Failed to clear obstacles:', e);
+    }
   };
 
   // Quick Chaos Action: Drop Pallet Spill Obstacle in Center Corridor
-  // Guarded array guarantees
-  const scenarioList = Array.isArray(scenarios) ? scenarios : DEFAULT_SCENARIOS;
-  const robotList = Array.isArray(simState?.robots) ? simState.robots : [];
-
   const handleQuickDropObstacle = async () => {
-    const targetX = 4;
-    const targetY = 4;
-    await apiService.addObstacle(targetX, targetY, 90, 'spill');
-    setEditorFeedback(`Pallet spill dropped at (${targetX}, ${targetY}). AMRs replanning!`);
+    try {
+      // Pick active aisle coordinate
+      const targetX = 4;
+      const targetY = 4;
+      const res = await fetch(getApiUrl('/simulation/obstacle'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ x: targetX, y: targetY, duration: 90, obstacle_type: 'spill' }),
+      });
+      if (res.ok) {
+        setEditorFeedback(`Pallet spill dropped at (${targetX}, ${targetY}). AMRs replanning!`);
+      }
+    } catch (e) {
+      console.error('Failed to quick-drop obstacle:', e);
+    }
   };
 
   // Quick Chaos Action: Fail first active robot
   const handleQuickFailRobot = async () => {
-    const target = robotList.find(r => r.health !== 'FAILED' && r.state !== 'idle') || robotList[0];
+    const target = simState?.robots?.find(r => r.health !== 'FAILED' && r.state !== 'idle') || simState?.robots?.[0];
     if (target) {
       handleRobotFail(target.id);
       setEditorFeedback(`Simulated breakdown on Unit ${target.id}. Order reassigned!`);
@@ -214,26 +248,60 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
 
   // Handler: Create Custom Task
   const handleCreateTask = async () => {
-    await apiService.dispatchTask(newTaskSku, newTaskPriority);
-    setIsTaskModalOpen(false);
-    setEditorFeedback(`Dispatched order ${newTaskSku} with ${newTaskPriority} priority.`);
+    try {
+      await fetch(getApiUrl('/simulation/task'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sku: newTaskSku,
+          priority: newTaskPriority,
+        }),
+      });
+      setIsTaskModalOpen(false);
+    } catch (e) {
+      console.error('Failed to create task:', e);
+    }
   };
 
   // Robot Action Handlers
   const handleRobotFail = async (robotId: string) => {
-    await apiService.failRobot(robotId);
+    try {
+      await fetch(getApiUrl('/simulation/robot/fail'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ robot_id: robotId }),
+      });
+    } catch (e) {
+      console.error('Failed to fail robot:', e);
+    }
   };
 
   const handleRobotRecover = async (robotId: string) => {
-    await apiService.recoverRobot(robotId);
+    try {
+      await fetch(getApiUrl('/simulation/robot/recover'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ robot_id: robotId }),
+      });
+    } catch (e) {
+      console.error('Failed to recover robot:', e);
+    }
   };
 
   const handleRobotForceCharge = async (robotId: string) => {
-    await apiService.chargeRobot(robotId);
+    try {
+      await fetch(getApiUrl('/simulation/robot/charge'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ robot_id: robotId }),
+      });
+    } catch (e) {
+      console.error('Failed to send robot to charge:', e);
+    }
   };
 
   // Selected robot details
-  const selectedRobot = robotList.find(r => r.id === selectedRobotId) || (robotList.length > 0 ? robotList[0] : undefined);
+  const selectedRobot = simState?.robots.find(r => r.id === selectedRobotId) || (simState?.robots && simState.robots.length > 0 ? simState.robots[0] : undefined);
 
   // Friendly status helper
   const getFriendlyStatus = (state?: string, health?: string) => {
@@ -247,16 +315,14 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
         return { label: 'Navigating to Shelf', dotColor: 'bg-cyan-400', textColor: 'text-cyan-400' };
       case 'picking':
         return { label: 'Picking SKU', dotColor: 'bg-amber-400', textColor: 'text-amber-400' };
-      case 'moving_to_station':
       case 'moving_to_packing':
-        return { label: 'En Route to Packing', dotColor: 'bg-purple-400', textColor: 'text-purple-400' };
-      case 'packing':
-        return { label: 'Order Processing', dotColor: 'bg-emerald-400', textColor: 'text-emerald-400' };
+        return { label: 'Delivering to Dock', dotColor: 'bg-emerald-400', textColor: 'text-emerald-400' };
       case 'moving_to_charge':
+        return { label: 'Routing to Charger', dotColor: 'bg-amber-400', textColor: 'text-amber-400' };
       case 'charging':
-        return { label: 'Battery Replenishing', dotColor: 'bg-emerald-400', textColor: 'text-emerald-400' };
+        return { label: 'Charging Docked', dotColor: 'bg-amber-300 animate-pulse', textColor: 'text-amber-300' };
       default:
-        return { label: state || 'Operational', dotColor: 'bg-slate-400', textColor: 'text-slate-400' };
+        return { label: 'Operational', dotColor: 'bg-amber-400', textColor: 'text-amber-400' };
     }
   };
 
@@ -270,8 +336,8 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
     utilization: 0,
   };
 
-  const activeFleetCount = robotList.filter(r => r.state !== 'idle').length;
-  const totalFleetCount = robotList.length > 0 ? robotList.length : 5;
+  const activeFleetCount = simState?.robots ? simState.robots.filter(r => r.state !== 'idle').length : 0;
+  const totalFleetCount = simState?.robots ? simState.robots.length : 5;
 
   return (
     <div className="space-y-6 select-none animate-in fade-in duration-300">
@@ -454,11 +520,11 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-200">Demonstration Scenario:</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono font-bold">
-                {scenarioList.find(s => s.id === selectedScenario)?.badge || 'Standard'}
+                {scenarios.find(s => s.id === selectedScenario)?.badge || 'Standard'}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              {scenarioList.find(s => s.id === selectedScenario)?.description || 'Evaluate multi-robot autonomous behaviors.'}
+              {scenarios.find(s => s.id === selectedScenario)?.description || 'Evaluate multi-robot autonomous behaviors.'}
             </p>
           </div>
         </div>
@@ -469,7 +535,7 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
             onChange={(e) => handleSelectScenario(e.target.value)}
             className="bg-slate-950 border border-slate-800 hover:border-amber-500/40 text-slate-200 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 min-w-[220px] md:min-w-[260px] cursor-pointer"
           >
-            {scenarioList.map((sc) => (
+            {scenarios.map((sc) => (
               <option key={sc.id} value={sc.id}>
                 {sc.name} [{sc.badge}]
               </option>
@@ -776,15 +842,15 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
             <div className="flex justify-between items-center pb-2 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <Bot className="w-4 h-4 text-amber-400" />
-                <h3 className="text-sm font-bold text-white">Active Fleet ({robotList.length})</h3>
+                <h3 className="text-sm font-bold text-white">Active Fleet ({simState?.robots ? simState.robots.length : 0})</h3>
               </div>
               <span className="text-xs font-mono text-emerald-400 font-semibold">
-                {robotList.filter(r => r.health === 'HEALTHY').length} Healthy
+                {simState?.robots ? simState.robots.filter(r => r.health === 'HEALTHY').length : 0} Healthy
               </span>
             </div>
 
             <div className="space-y-1.5 max-h-[260px] overflow-y-auto pr-1">
-              {robotList.map((robot) => {
+              {(simState?.robots || []).map((robot) => {
                 const isSelected = selectedRobotId === robot.id;
                 const status = getFriendlyStatus(robot.state, robot.health);
 
@@ -852,7 +918,7 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
           </div>
 
           <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-            {Array.isArray(simState?.tasks?.pending) && simState.tasks.pending.length > 0 ? (
+            {simState?.tasks?.pending && simState.tasks.pending.length > 0 ? (
               simState.tasks.pending.map((task) => (
                 <div
                   key={task.id}

@@ -1,7 +1,16 @@
 {
+  "framework": "vite",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/:path*",
+      "destination": "https://ai-ml-ware-house.onrender.com/api/:path*"
+    },
+    {
+      "source": "/simulation/:path*",
+      "destination": "https://ai-ml-ware-house.onrender.com/simulation/:path*"
+    },
+    {
+      "source": "/((?!api|simulation|ws).*)",
       "destination": "/index.html"
     }
   ]

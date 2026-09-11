@@ -300,7 +300,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Right: Current Task & Fleet Telemetry Card */}
         {(() => {
-          const fleet = Array.isArray(simState?.robots) && simState.robots.length > 0 ? simState.robots : [
+          const fleet = simState?.robots || [
             { id: 'R0', x: 1, y: 8, state: 'idle', battery: 100 },
             { id: 'R1', x: 3, y: 8, state: 'idle', battery: 100 },
             { id: 'R2', x: 5, y: 8, state: 'idle', battery: 100 },

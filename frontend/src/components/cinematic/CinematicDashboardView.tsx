@@ -125,15 +125,19 @@ export const CinematicDashboardView: React.FC<CinematicDashboardViewProps> = ({
               <span className="text-amber-400">XGB READY</span>
             </>
           )}
-          <span className="text-slate-600">|</span>
-          <button
-            onClick={() => setIsVisionOpen(true)}
-            className="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 cursor-pointer"
-            title="Click to view live Optical Perception feed"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>YOLOv8 LIVE</span>
-          </button>
+          {systemStatus.yolo_ready && (
+            <>
+              <span className="text-slate-600">|</span>
+              <button
+                onClick={() => setIsVisionOpen(true)}
+                className="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 cursor-pointer"
+                title="Click to view live Optical Perception feed"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>YOLOv8 LIVE</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 

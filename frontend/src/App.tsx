@@ -8,8 +8,7 @@ import DatasetExperimentsView from './components/experiments/DatasetExperimentsV
 import SystemArchitectureView from './components/architecture/SystemArchitectureView';
 import SettingsModal from './components/common/SettingsModal';
 import HelpAboutModal from './components/common/HelpAboutModal';
-import { apiService } from './services/api';
-import { INITIAL_SYSTEM_STATUS } from './services/mockData';
+import { getApiUrl, getWsUrl } from './config/api';
 
 import type { 
   PageId, 
@@ -50,7 +49,10 @@ const App: React.FC = () => {
   };
 
   // System Status
-  const [sysStatus, setSysStatus] = useState<SystemStatus>(INITIAL_SYSTEM_STATUS);
+  const [sysStatus, setSysStatus] = useState<SystemStatus>({
+    yolo_ready: false,
+    xgboost_ready: false,
+  });
 
   // Simulation State
   const [simRunning, setSimRunning] = useState(false);
@@ -88,59 +90,103 @@ const App: React.FC = () => {
   const [isMlLoading, setIsMlLoading] = useState(false);
   const [mlError, setMlError] = useState<string | null>(null);
 
-  // 1. Poll System Status safely (Zero 404 spam)
+  // 1. Poll System Status
   useEffect(() => {
-    let mounted = true;
     const checkStatus = async () => {
       try {
-        const status = await apiService.getSystemStatus();
-        if (mounted) setSysStatus(status);
-      } catch {
-        // silent fallback
+        const res = await fetch(getApiUrl('/api/ml/status'));
+        if (res.ok) {
+          const data = await res.json();
+          setSysStatus(data);
+        }
+      } catch (e) {
+        // network or sleeping backend
       }
     };
     checkStatus();
-
-    const interval = setInterval(() => {
-      if (!apiService.isStandalone()) {
-        checkStatus();
-      }
-    }, 10000);
-
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
+    const interval = setInterval(checkStatus, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  // 2. Fetch Initial Simulation State & Connect Live Stream
+  // 2. Fetch Initial Simulation State & Connect WebSocket for Live Telemetry
   useEffect(() => {
-    const unsub = apiService.subscribeToSimulation((state) => {
-      setSimState(state);
-      if (state.running !== undefined) {
-        setSimRunning(state.running);
+    // Immediate initial state fetch
+    const fetchInitState = async () => {
+      try {
+        const res = await fetch(getApiUrl('/simulation/state'));
+        if (res.ok) {
+          const data: SimState = await res.json();
+          setSimState(data);
+          if (data.running !== undefined) setSimRunning(data.running);
+        }
+      } catch (e) {
+        // network or sleeping backend
       }
-    });
+    };
+    fetchInitState();
 
+    let ws: WebSocket | null = null;
+    let retryTimer: any = null;
+
+    const connectWs = () => {
+      try {
+        const wsUrl = getWsUrl('/ws/state');
+        ws = new WebSocket(wsUrl);
+        ws.onmessage = (event) => {
+          try {
+            const state: SimState = JSON.parse(event.data);
+            setSimState(state);
+            if (state.running !== undefined) {
+              setSimRunning(state.running);
+            }
+          } catch (e) {
+            console.error('Failed to parse sim state WebSocket message:', e);
+          }
+        };
+        ws.onclose = () => {
+          retryTimer = setTimeout(connectWs, 3000);
+        };
+        ws.onerror = () => {
+          if (ws) ws.close();
+        };
+      } catch (e) {
+        retryTimer = setTimeout(connectWs, 3000);
+      }
+    };
+
+    connectWs();
     return () => {
-      unsub();
+      if (ws) ws.close();
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, []);
 
   // 3. Simulation Handlers
   const startSim = async () => {
-    await apiService.startSimulation();
-    setSimRunning(true);
+    try {
+      await fetch(getApiUrl('/simulation/start'), { method: 'POST' });
+      setSimRunning(true);
+    } catch (e) {
+      console.error('Failed to start simulation:', e);
+    }
   };
 
   const stopSim = async () => {
-    await apiService.stopSimulation();
-    setSimRunning(false);
+    try {
+      await fetch(getApiUrl('/simulation/stop'), { method: 'POST' });
+      setSimRunning(false);
+    } catch (e) {
+      console.error('Failed to stop simulation:', e);
+    }
   };
 
   const resetSim = async () => {
-    await apiService.resetSimulation();
-    setSimRunning(false);
+    try {
+      await fetch(getApiUrl('/simulation/reset'), { method: 'POST' });
+      setSimRunning(false);
+    } catch (e) {
+      console.error('Failed to reset simulation:', e);
+    }
   };
 
   // 4. Vision Handlers
@@ -183,9 +229,18 @@ const App: React.FC = () => {
     }
     setIsVisionLoading(true);
     setVisionError(null);
+    const formData = new FormData();
+    formData.append('file', visionImage);
 
     try {
-      const data = await apiService.detectObjects(visionImage, visionPreview || '');
+      const res = await fetch(getApiUrl('/api/ml/detect'), {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) {
+        throw new Error(`Inference failed with status ${res.status}`);
+      }
+      const data: VisionResult = await res.json();
       setVisionResults(data);
     } catch (e: any) {
       setVisionError(e.message || 'Vision inference failed.');
@@ -199,7 +254,13 @@ const App: React.FC = () => {
     setIsMlLoading(true);
     setMlError(null);
     try {
-      const data = await apiService.predictWarehouse(mlInput);
+      const res = await fetch(getApiUrl('/api/ml/predict'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mlInput),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data: PredictResult = await res.json();
       setMlResults(data);
     } catch (e: any) {
       setMlError(`Prediction Failed: ${e.message || 'Server error'}`);
@@ -214,7 +275,6 @@ const App: React.FC = () => {
       onSelectPage={handleSelectPage}
       systemStatus={sysStatus}
       onOpenHelpModal={() => setIsAboutOpen(true)}
-      onOpenSettingsModal={() => setIsSettingsOpen(true)}
     >
       {/* 1. Cinematic Bio-AI Dashboard (Reference Specification) */}
       {activePage === 'dashboard' && (

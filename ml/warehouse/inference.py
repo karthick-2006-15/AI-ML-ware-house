@@ -10,8 +10,8 @@ if REPO_ROOT not in sys.path:
 
 class WarehouseInference:
     def __init__(self):
-        models_dir = os.path.join(REPO_ROOT, "models", "xgboost")
-        data_dir = os.path.join(REPO_ROOT, "data", "processed", "warehouse")
+        models_dir = os.path.join("models", "xgboost")
+        data_dir = os.path.join("data", "processed", "warehouse")
         
         # Load encoders
         self.le_category = joblib.load(os.path.join(data_dir, "le_category.pkl"))
