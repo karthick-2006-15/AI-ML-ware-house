@@ -13,13 +13,17 @@ from ml.vision.inference import VisionInference
 
 ml_router = APIRouter(prefix="/api/ml", tags=["Machine Learning"])
 
-# Initialize models
+# Initialize models independently so one failure never disables the other
 try:
     warehouse_infer = WarehouseInference()
+except Exception as e:
+    print(f"WARNING: Warehouse inference initialization error: {e}")
+    warehouse_infer = None
+
+try:
     vision_infer = VisionInference()
 except Exception as e:
-    print(f"WARNING: ML Models not fully loaded. Error: {e}")
-    warehouse_infer = None
+    print(f"WARNING: Vision inference initialization error: {e}")
     vision_infer = None
 
 class WarehousePredictRequest(BaseModel):
@@ -127,6 +131,13 @@ async def detect_frame(request: FrameDetectRequest):
 
 @ml_router.post("/predict")
 def predict_warehouse(request: WarehousePredictRequest):
+    global warehouse_infer
+    if not warehouse_infer:
+        try:
+            warehouse_infer = WarehouseInference()
+        except Exception as e:
+            print(f"[predict_warehouse] Lazy init failed: {e}")
+            
     if not warehouse_infer:
         raise HTTPException(status_code=503, detail="Warehouse analytics model not loaded.")
         

@@ -24,3 +24,10 @@ Thumbs.db
 *.pt
 *.pkl
 runs/
+
+# Whitelist trained model artifacts required for production inference
+!models/final/weights/best.pt
+!models/xgboost/*.pkl
+!data/processed/warehouse/*.pkl
+!predictive_analytics/models/xgboost/best_xgboost_model.pkl
+!predictive_analytics/data/processed/pipeline.pkl
