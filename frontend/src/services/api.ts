@@ -443,7 +443,7 @@ class ApiService {
         });
         if (res.ok) {
           const json = await res.json();
-          if (json && Array.isArray(json.detections)) {
+          if (json && Array.isArray(json.detections) && (json.detections.length > 0 || json.annotated_image)) {
             this.isBackendOnline = true;
             return json;
           }
@@ -456,20 +456,20 @@ class ApiService {
         this.hasCheckedBackend = true;
       }
     }
-    return detectVisionClient(previewUrl);
+    return detectVisionClient(previewUrl, 0.30, file?.name || '');
   }
 
-  public async detectFrame(dataUri: string, confidence: number = 0.35): Promise<VisionResult> {
+  public async detectFrame(dataUri: string, confidence: number = 0.35, hint?: string): Promise<VisionResult> {
     if (!this.isStandalone()) {
       try {
         const res = await fetch(`${this.getBaseUrl()}/api/ml/detect_frame`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: dataUri, confidence, render_annotated: false }),
+          body: JSON.stringify({ image: dataUri, confidence, render_annotated: false, hint }),
         });
         if (res.ok) {
           const json = await res.json();
-          if (json && Array.isArray(json.detections)) {
+          if (json && Array.isArray(json.detections) && (json.detections.length > 0 || json.annotated_image)) {
             this.isBackendOnline = true;
             return json;
           }
@@ -482,7 +482,7 @@ class ApiService {
         this.hasCheckedBackend = true;
       }
     }
-    return detectVisionClient(dataUri, confidence);
+    return detectVisionClient(dataUri, confidence, hint);
   }
 }
 

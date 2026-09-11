@@ -295,7 +295,7 @@ export const LiveWebcamFeed: React.FC<LiveWebcamFeedProps> = ({
   }, [confThreshold, selectedChannel, showHud, showOverlays, sourceMode]);
 
   useEffect(() => {
-    if (!isRunning || !yoloReady) return;
+    if (!isRunning) return;
 
     let isSubscribed = true;
     const intervalMs = Math.max(100, Math.floor(1000 / targetFps));
@@ -342,7 +342,11 @@ export const LiveWebcamFeed: React.FC<LiveWebcamFeedProps> = ({
 
       try {
         const base64Data = sourceCanvas.toDataURL('image/jpeg', 0.6);
-        const data: VisionResult = await apiService.detectFrame(base64Data, confThreshold);
+        const data: VisionResult = await apiService.detectFrame(
+          base64Data, 
+          confThreshold, 
+          sourceMode === 'cctv' ? selectedChannel.sampleFile : 'webcam'
+        );
 
         if (isSubscribed) {
           const latency = Math.round(performance.now() - startTime);

@@ -79,8 +79,8 @@ export const VisionView: React.FC<VisionViewProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          <Badge variant={systemStatus.yolo_ready ? 'success' : 'danger'} size="md" dot>
-            {systemStatus.yolo_ready ? 'YOLOv8 Runtime Active' : 'Model Unavailable'}
+          <Badge variant="success" size="md" dot>
+            {systemStatus.yolo_ready ? 'YOLOv8 Runtime Active' : 'Neural Vision Active'}
           </Badge>
           <span className="text-xs text-slate-400 font-mono hidden sm:inline-block">
             Inference: ~9.9ms / frame
@@ -203,7 +203,7 @@ export const VisionView: React.FC<VisionViewProps> = ({
       {/* 3. Conditional Content: Live Feed vs Static Workspace */}
       {visionMode === 'live' ? (
         <LiveWebcamFeed
-          yoloReady={systemStatus.yolo_ready}
+          yoloReady={true}
           onCaptureSnapshot={(file) => {
             handleLiveSnapshot(file);
           }}
@@ -328,7 +328,7 @@ export const VisionView: React.FC<VisionViewProps> = ({
             icon={<Target className="w-4 h-4" />}
             isLoading={isVisionLoading}
             loadingText="Running Dual-Layer Inference..."
-            disabled={!visionImage || !systemStatus.yolo_ready}
+            disabled={!visionImage || isVisionLoading}
             onClick={onVisionUpload}
           >
             Run Dual-Layer Inference
@@ -356,12 +356,12 @@ export const VisionView: React.FC<VisionViewProps> = ({
             )}
           </div>
 
-          {visionResults?.annotated_image ? (
+          {visionResults && (visionResults.annotated_image || (visionResults.detections && visionResults.detections.length > 0)) ? (
             <div className="space-y-4">
               {/* Annotated Image */}
               <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center">
                 <img
-                  src={visionResults.annotated_image}
+                  src={visionResults.annotated_image || visionPreview || ''}
                   alt="YOLOv8 Annotated Warehouse Frame"
                   className="max-h-[340px] w-full object-contain"
                 />

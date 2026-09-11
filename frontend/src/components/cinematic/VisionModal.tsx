@@ -218,7 +218,11 @@ export const VisionModal: React.FC<VisionModalProps> = ({
       const t0 = performance.now();
       try {
         const b64 = sourceCanvas.toDataURL('image/jpeg', 0.6);
-        const data: VisionResult = await apiService.detectFrame(b64, 0.30);
+        const data: VisionResult = await apiService.detectFrame(
+          b64, 
+          0.30, 
+          sourceMode === 'cctv' ? selectedChannel.sampleFile : 'webcam'
+        );
         if (active) {
           const latency = Math.round(performance.now() - t0);
           setLatencyMs(latency);
