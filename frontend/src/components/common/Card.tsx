@@ -12,25 +12,16 @@ export const Card: React.FC<CardProps> = ({
   children,
   className = '',
   hoverable = false,
-  glow = 'none',
   onClick,
 }) => {
-  const glowClasses = {
-    blue: 'glow-blue border-blue-500/30',
-    cyan: 'glow-cyan border-cyan-500/30',
-    purple: 'glow-purple border-purple-500/30',
-    green: 'glow-green border-emerald-500/30',
-    none: 'border-[#1A2D4A]',
-  };
-
   const hoverClass = hoverable
-    ? 'transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-[0_8px_30px_rgba(0,217,255,0.15)] cursor-pointer'
-    : 'transition-all duration-200';
+    ? 'transition-all duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:border-amber-500/30 hover:shadow-2xl hover:shadow-amber-500/5 cursor-pointer active:scale-[0.995]'
+    : 'transition-colors duration-200';
 
   return (
     <div
       onClick={onClick}
-      className={`bg-[#0D1B2E] border rounded-2xl p-5 shadow-lg shadow-black/40 backdrop-blur-sm ${glowClasses[glow]} ${hoverClass} ${className}`}
+      className={`bg-[#0A0F1D]/80 backdrop-blur-md border border-white/[0.08] rounded-2xl p-5 shadow-lg shadow-black/40 ${hoverClass} ${className}`}
     >
       {children}
     </div>

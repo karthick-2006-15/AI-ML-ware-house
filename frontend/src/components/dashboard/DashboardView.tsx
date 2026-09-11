@@ -42,79 +42,77 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectRobot,
 }) => {
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-premium-fade">
       {/* 1. Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-premium-fade stagger-1">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-cyan-400 tracking-wider uppercase mb-1">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 mb-1">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
             Autonomous Warehouse Intelligence System
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
             Warehouse Operations Dashboard
           </h1>
           <p className="text-slate-400 text-xs sm:text-sm mt-1">
-            Unified perception (YOLOv8s), 7-day stockout prediction (XGBoost), and A* fleet orchestration.
+            Perception (YOLOv8s), stockout risk prediction (XGBoost), and zero-collision AMR fleet coordinator.
           </p>
         </div>
 
         {/* Quick System Readiness Badges */}
         <div className="flex items-center gap-2.5">
-          <Badge variant={simRunning ? 'success' : 'simulation'} size="md" dot>
-            {simRunning ? 'A* FLEET RUNNING' : 'A* SIMULATION STANDBY'}
+          <Badge variant={simRunning ? 'success' : 'neutral'} size="md" dot>
+            {simRunning ? 'Fleet Running' : 'Simulation Standby'}
           </Badge>
           <Badge variant={systemStatus.xgboost_ready && systemStatus.yolo_ready ? 'success' : 'warning'} size="md">
-            {systemStatus.xgboost_ready && systemStatus.yolo_ready ? 'MODELS READY' : 'DEGRADED'}
+            {systemStatus.xgboost_ready && systemStatus.yolo_ready ? 'Models Ready' : 'Degraded'}
           </Badge>
         </div>
       </div>
 
       {/* 2. Top Row: Three Primary Capability Cards (Equal Height) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 animate-premium-fade stagger-2">
         {/* CARD 1: COMPUTER VISION (YOLOv8) - SEE */}
         <Card
           hoverable
           onClick={() => onNavigate('vision')}
-          glow="cyan"
-          className="flex flex-col justify-between relative overflow-hidden group border-cyan-500/30 hover:border-cyan-400 hover:shadow-[0_0_30px_rgba(0,217,255,0.25)] transition-all duration-300"
+          className="flex flex-col justify-between border-slate-800/80 hover:border-slate-700 transition-colors"
         >
-          <div className="absolute -right-6 -top-6 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/25 transition-all" />
           <div>
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400 font-mono">
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-xs font-semibold text-blue-400">
                 Computer Vision • YOLOv8
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-cyan-500/20 text-[#00D9FF] border border-cyan-500/40 shadow-[0_0_10px_rgba(0,217,255,0.3)]">
+              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
                 SEE
               </span>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-200 transition-colors">
+            <h3 className="text-lg font-bold text-white mb-1.5">
               Object Detection
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-6">
-              Real-time perception across 6 industrial classes: persons, cartons, pallets, forklifts, AMRs, and robotic arms.
+            <p className="text-xs text-slate-400 leading-relaxed mb-5">
+              Real-time industrial perception across 6 classes: persons, cartons, pallets, forklifts, AMRs, and robotic arms.
             </p>
           </div>
 
-          <div className="space-y-4 pt-4 border-t border-[#1A2D4A]">
+          <div className="space-y-4 pt-4 border-t border-slate-800/80">
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="p-2 bg-[#08182A] rounded-xl border border-[#1A2D4A]">
-                <span className="block text-[10px] text-slate-400 uppercase font-semibold">Status</span>
-                <span className="text-xs font-bold text-emerald-400">Ready</span>
+              <div className="p-2 bg-slate-900/60 rounded-lg border border-slate-800/60">
+                <span className="block text-[10px] text-slate-400 uppercase font-medium">Status</span>
+                <span className="text-xs font-semibold text-emerald-400">Ready</span>
               </div>
-              <div className="p-2 bg-[#08182A] rounded-xl border border-[#1A2D4A]">
-                <span className="block text-[10px] text-slate-400 uppercase font-semibold">Classes</span>
-                <span className="text-xs font-bold text-white">6 Classes</span>
+              <div className="p-2 bg-slate-900/60 rounded-lg border border-slate-800/60">
+                <span className="block text-[10px] text-slate-400 uppercase font-medium">Classes</span>
+                <span className="text-xs font-semibold text-white">6 Classes</span>
               </div>
-              <div className="p-2 bg-[#08182A] rounded-xl border border-[#1A2D4A]">
-                <span className="block text-[10px] text-slate-400 uppercase font-semibold">mAP@50</span>
-                <span className="text-xs font-bold text-cyan-400 font-mono drop-shadow-[0_0_8px_rgba(0,217,255,0.6)]">79.0%</span>
+              <div className="p-2 bg-slate-900/60 rounded-lg border border-slate-800/60">
+                <span className="block text-[10px] text-slate-400 uppercase font-medium">mAP@50</span>
+                <span className="text-xs font-semibold text-blue-400 font-mono">79.0%</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs font-semibold text-cyan-400 group-hover:text-cyan-200 transition-colors">
+            <div className="flex items-center justify-between text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors">
               <span>Open Computer Vision</span>
-              <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform" />
+              <ArrowRight className="w-4 h-4" />
             </div>
           </div>
         </Card>
@@ -123,46 +121,44 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <Card
           hoverable
           onClick={() => onNavigate('analytics')}
-          glow="purple"
-          className="flex flex-col justify-between relative overflow-hidden group border-purple-500/30 hover:border-purple-400 hover:shadow-[0_0_30px_rgba(124,58,237,0.25)] transition-all duration-300"
+          className="flex flex-col justify-between border-slate-800/80 hover:border-slate-700 transition-colors"
         >
-          <div className="absolute -right-6 -top-6 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/25 transition-all" />
           <div>
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400 font-mono">
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-xs font-semibold text-purple-400">
                 Predictive Analytics • XGBoost
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-500/20 text-[#A855F7] border border-purple-500/40 shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
                 PREDICT
               </span>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-200 transition-colors">
+            <h3 className="text-lg font-bold text-white mb-1.5">
               Inventory Risk Prediction
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-6">
-              Forward-looking stockout classification using 9 operational runout ratios, SHAP game-theoretic explainability, and class reweighting.
+            <p className="text-xs text-slate-400 leading-relaxed mb-5">
+              Forward-looking stockout classification using 9 operational runout ratios, SHAP explainability, and class reweighting.
             </p>
           </div>
 
-          <div className="space-y-4 pt-4 border-t border-[#1A2D4A]">
+          <div className="space-y-4 pt-4 border-t border-slate-800/80">
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="p-2 bg-[#08182A] rounded-xl border border-[#1A2D4A]">
-                <span className="block text-[10px] text-slate-400 uppercase font-semibold">Status</span>
-                <span className="text-xs font-bold text-emerald-400">Ready</span>
+              <div className="p-2 bg-slate-900/60 rounded-lg border border-slate-800/60">
+                <span className="block text-[10px] text-slate-400 uppercase font-medium">Status</span>
+                <span className="text-xs font-semibold text-emerald-400">Ready</span>
               </div>
-              <div className="p-2 bg-[#08182A] rounded-xl border border-[#1A2D4A]">
-                <span className="block text-[10px] text-slate-400 uppercase font-semibold">ROC-AUC</span>
-                <span className="text-xs font-bold text-white font-mono">0.9197</span>
+              <div className="p-2 bg-slate-900/60 rounded-lg border border-slate-800/60">
+                <span className="block text-[10px] text-slate-400 uppercase font-medium">ROC-AUC</span>
+                <span className="text-xs font-semibold text-white font-mono">0.9197</span>
               </div>
-              <div className="p-2 bg-[#08182A] rounded-xl border border-[#1A2D4A]">
-                <span className="block text-[10px] text-slate-400 uppercase font-semibold">Recall</span>
-                <span className="text-xs font-bold text-purple-400 font-mono drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]">86.9%</span>
+              <div className="p-2 bg-slate-900/60 rounded-lg border border-slate-800/60">
+                <span className="block text-[10px] text-slate-400 uppercase font-medium">Recall</span>
+                <span className="text-xs font-semibold text-purple-400 font-mono">86.9%</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs font-semibold text-purple-400 group-hover:text-purple-200 transition-colors">
+            <div className="flex items-center justify-between text-xs font-semibold text-purple-400 hover:text-purple-300 transition-colors">
               <span>Open Predictive Analytics</span>
-              <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform" />
+              <ArrowRight className="w-4 h-4" />
             </div>
           </div>
         </Card>
@@ -171,53 +167,51 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <Card
           hoverable
           onClick={() => onNavigate('simulation')}
-          glow="green"
-          className="flex flex-col justify-between relative overflow-hidden group border-emerald-500/30 hover:border-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.25)] transition-all duration-300"
+          className="flex flex-col justify-between border-slate-800/80 hover:border-slate-700 transition-colors"
         >
-          <div className="absolute -right-6 -top-6 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/25 transition-all" />
           <div>
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 font-mono">
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-xs font-semibold text-emerald-400">
                 Autonomous Navigation • A*
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500/20 text-[#10B981] border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 NAVIGATE
               </span>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-emerald-200 transition-colors">
+            <h3 className="text-lg font-bold text-white mb-1.5">
               Robot Path Planning
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-6">
-              Multi-agent dynamic A* collision avoidance, automated shelf dispatch, and fulfillment route optimization.
+            <p className="text-xs text-slate-400 leading-relaxed mb-5">
+              Multi-agent space-time A* collision avoidance, automated shelf dispatch, and fulfillment route optimization.
             </p>
           </div>
 
-          <div className="space-y-4 pt-4 border-t border-[#1A2D4A]">
+          <div className="space-y-4 pt-4 border-t border-slate-800/80">
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="p-2 bg-[#08182A] rounded-xl border border-[#1A2D4A]">
-                <span className="block text-[10px] text-slate-400 uppercase font-semibold">Status</span>
-                <span className="text-xs font-bold text-emerald-400">Ready</span>
+              <div className="p-2 bg-slate-900/60 rounded-lg border border-slate-800/60">
+                <span className="block text-[10px] text-slate-400 uppercase font-medium">Status</span>
+                <span className="text-xs font-semibold text-emerald-400">Ready</span>
               </div>
-              <div className="p-2 bg-[#08182A] rounded-xl border border-[#1A2D4A]">
-                <span className="block text-[10px] text-slate-400 uppercase font-semibold">Fleet</span>
-                <span className="text-xs font-bold text-white">5 Robots</span>
+              <div className="p-2 bg-slate-900/60 rounded-lg border border-slate-800/60">
+                <span className="block text-[10px] text-slate-400 uppercase font-medium">Fleet</span>
+                <span className="text-xs font-semibold text-white">5 Robots</span>
               </div>
-              <div className="p-2 bg-[#08182A] rounded-xl border border-[#1A2D4A]">
-                <span className="block text-[10px] text-slate-400 uppercase font-semibold">Grid</span>
-                <span className="text-xs font-bold text-emerald-400 font-mono drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]">10x10</span>
+              <div className="p-2 bg-slate-900/60 rounded-lg border border-slate-800/60">
+                <span className="block text-[10px] text-slate-400 uppercase font-medium">Grid</span>
+                <span className="text-xs font-semibold text-emerald-400 font-mono">10x10</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs font-semibold text-emerald-400 group-hover:text-emerald-200 transition-colors">
+            <div className="flex items-center justify-between text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">
               <span>Open 2D Simulation</span>
-              <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform" />
+              <ArrowRight className="w-4 h-4" />
             </div>
           </div>
         </Card>
       </div>
 
       {/* 3. Second Row: 2D Simulation (Left 8 cols) + Current Task (Right 4 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-premium-fade stagger-3">
         {/* Left: 2D Warehouse Simulation Card */}
         <Card className="lg:col-span-8 flex flex-col justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
@@ -272,7 +266,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* Interactive Simulation Canvas */}
-          <div className="w-full flex justify-center bg-[#06101F] rounded-2xl p-4 border border-[#14253D]">
+          <div className="w-full flex justify-center bg-slate-950/60 rounded-xl p-4 border border-slate-800/80">
             <WarehouseCanvas
               simState={simState}
               selectedRobotId={selectedRobotId}
@@ -283,22 +277,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* Live Fleet Ticker */}
-          <div className="mt-4 pt-3 border-t border-[#1A2D4A] flex flex-wrap justify-between items-center text-xs text-slate-400">
+          <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap justify-between items-center text-xs text-slate-400">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-blue-500" />
-                Active AMRs: <strong>{simState ? simState.robots.length : 5}</strong>
+                Active AMRs: <strong className="text-slate-200">{simState ? simState.robots.length : 5}</strong>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                Packing Stations: <strong>1</strong>
+                Packing Stations: <strong className="text-slate-200">1</strong>
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-orange-500" />
-                Charging Bays: <strong>2</strong>
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                Charging Bays: <strong className="text-slate-200">2</strong>
               </span>
             </div>
-            <span className="font-mono text-[11px] text-cyan-400">
+            <span className="font-mono text-xs text-slate-400">
               Tick: #{simState?.tick ?? 0}
             </span>
           </div>
@@ -327,36 +321,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           const robotBattery = activeRobot.battery ?? 100;
 
           return (
-            <Card className="lg:col-span-4 flex flex-col justify-between h-full space-y-6">
+            <Card className="lg:col-span-4 flex flex-col justify-between h-full space-y-5">
               <div>
-                <div className="flex justify-between items-center pb-3 border-b border-[#1A2D4A] mb-4">
-                  <h3 className="text-base font-bold text-white">Active Fleet Telemetry</h3>
-                  <Badge variant={simRunning ? 'cyan' : 'neutral'} dot size="sm">
-                    {simRunning ? 'LIVE DISPATCH' : 'STANDBY'}
+                <div className="flex justify-between items-center pb-3 border-b border-slate-800/80 mb-4">
+                  <h3 className="text-sm font-semibold text-white">Fleet Telemetry</h3>
+                  <Badge variant={simRunning ? 'success' : 'neutral'} dot size="sm">
+                    {simRunning ? 'Active' : 'Standby'}
                   </Badge>
                 </div>
 
                 {/* Primary Active Robot Card */}
-                <div className="p-4 rounded-xl bg-[#08182A] border border-[#1A2D4A] space-y-4">
+                <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[11px] font-mono text-cyan-400 uppercase">AMR Unit {activeRobot.id}</span>
-                      <h4 className="text-sm font-bold text-white mt-0.5">{getStatusText(activeRobot.state)}</h4>
+                      <span className="text-[11px] font-mono text-blue-400 font-semibold uppercase">AMR Unit {activeRobot.id}</span>
+                      <h4 className="text-sm font-semibold text-white mt-0.5">{getStatusText(activeRobot.state)}</h4>
                     </div>
                     <Badge variant={robotBattery > 50 ? 'success' : robotBattery > 20 ? 'warning' : 'danger'} size="sm">
-                      {robotBattery}% Battery
+                      {robotBattery}%
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="p-2.5 bg-[#0D1B2E] rounded-lg border border-[#14253D]">
-                      <span className="text-[10px] text-slate-400 block">Current Grid Pos</span>
+                  <div className="grid grid-cols-2 gap-2.5 text-xs">
+                    <div className="p-2 bg-slate-950/60 rounded-lg border border-slate-800/60">
+                      <span className="text-[10px] text-slate-400 block font-medium">Grid Position</span>
                       <span className="font-semibold text-slate-200 font-mono">({activeRobot.x}, {activeRobot.y})</span>
                     </div>
-                    <div className="p-2.5 bg-[#0D1B2E] rounded-lg border border-[#14253D]">
-                      <span className="text-[10px] text-slate-400 block">Assigned Target</span>
+                    <div className="p-2 bg-slate-950/60 rounded-lg border border-slate-800/60">
+                      <span className="text-[10px] text-slate-400 block font-medium">Target</span>
                       <span className="font-semibold text-slate-200">
-                        {activeRobot.state === 'charging' ? 'Bay C1/C2' : 'Packing P1 (5,0)'}
+                        {activeRobot.state === 'charging' ? 'Bay C1/C2' : 'Packing P1'}
                       </span>
                     </div>
                   </div>
@@ -364,19 +358,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div>
                     <div className="flex justify-between items-center text-xs mb-1.5">
                       <span className="text-slate-400 font-medium">Battery Level</span>
-                      <span className="font-mono font-bold text-cyan-400">{robotBattery}%</span>
+                      <span className="font-mono font-semibold text-slate-200">{robotBattery}%</span>
                     </div>
                     <ProgressBar
                       value={robotBattery}
                       color={robotBattery > 50 ? 'green' : robotBattery > 20 ? 'amber' : 'red'}
-                      height="h-2"
+                      height="h-1.5"
                     />
                   </div>
 
-                  <div className="flex justify-between items-center text-[11px] text-slate-400 pt-1">
-                    <span>Mode: <strong>{simRunning ? 'Autonomous Order Fulfill' : 'Ready for Dispatch'}</strong></span>
-                    <span className="flex items-center gap-1 text-slate-300">
-                      <Clock className="w-3 h-3 text-cyan-400" /> Tick #{simState?.tick ?? 0}
+                  <div className="flex justify-between items-center text-[11px] text-slate-400 pt-1 border-t border-slate-800/40">
+                    <span>Mode: <strong className="text-slate-300 font-medium">{simRunning ? 'Autonomous Dispatch' : 'Idle Standby'}</strong></span>
+                    <span className="flex items-center gap-1 text-slate-400 font-mono">
+                      <Clock className="w-3 h-3 text-slate-400" /> #{simState?.tick ?? 0}
                     </span>
                   </div>
                 </div>
@@ -384,21 +378,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               {/* Remaining Fleet Units */}
               <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2.5">
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
                   Remaining Fleet ({fleet.filter(r => r.id !== activeRobot.id).length} AMRs)
                 </span>
-                <div className="space-y-2 text-xs">
+                <div className="space-y-1.5 text-xs">
                   {fleet.filter(r => r.id !== activeRobot.id).slice(0, 3).map((r) => (
                     <div
                       key={r.id}
                       onClick={() => onSelectRobot(r.id)}
-                      className="p-2.5 rounded-xl bg-[#08182A] border border-[#14253D] hover:border-cyan-500/40 cursor-pointer flex justify-between items-center transition"
+                      className="p-2 rounded-lg bg-slate-900/40 border border-slate-800/60 hover:border-slate-700 cursor-pointer flex justify-between items-center transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-cyan-400" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                         <span className="font-medium text-slate-300">AMR {r.id} — Tile ({r.x}, {r.y})</span>
                       </div>
-                      <span className="text-[10px] font-mono text-slate-400">{r.battery}%</span>
+                      <span className="text-[11px] font-mono text-slate-400">{r.battery}%</span>
                     </div>
                   ))}
                 </div>
@@ -419,7 +413,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* 4. Third Row: Inventory Risk Overview (Left 6 cols) + Model Performance (Right 6 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-premium-fade stagger-4">
         {/* INVENTORY RISK OVERVIEW (Donut & Risk breakdown) */}
         <Card className="flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
@@ -438,66 +432,66 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex justify-center items-center relative">
               <svg className="w-36 h-36 transform -rotate-90" viewBox="0 0 100 100">
                 {/* Background ring */}
-                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#102238" strokeWidth="14" />
+                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#1E293B" strokeWidth="12" />
                 {/* Low Risk: 72.8% */}
                 <circle
                   cx="50" cy="50" r="38"
                   fill="transparent"
                   stroke="#10B981"
-                  strokeWidth="14"
+                  strokeWidth="12"
                   strokeDasharray="238.7"
                   strokeDashoffset="65"
-                  className="transition-all duration-1000"
+                  className="transition-all duration-700"
                 />
                 {/* High Risk: 27.2% */}
                 <circle
                   cx="50" cy="50" r="38"
                   fill="transparent"
-                  stroke="#EF4444"
-                  strokeWidth="14"
+                  stroke="#F43F5E"
+                  strokeWidth="12"
                   strokeDasharray="238.7"
                   strokeDashoffset="174"
-                  className="transition-all duration-1000"
+                  className="transition-all duration-700"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-xl font-black text-white font-mono leading-none">3,204</span>
-                <span className="text-[10px] text-slate-400 uppercase font-semibold mt-1">Total SKUs</span>
+                <span className="text-xl font-bold text-white font-mono leading-none">3,204</span>
+                <span className="text-[10px] text-slate-400 uppercase font-medium mt-1">Total SKUs</span>
               </div>
             </div>
 
             {/* Legend Stats */}
-            <div className="space-y-3">
-              <div className="p-2.5 rounded-xl bg-[#08182A] border border-[#1A2D4A] flex justify-between items-center">
+            <div className="space-y-2.5">
+              <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800/80 flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-md bg-emerald-500 flex-shrink-0" />
-                  <span className="text-xs font-semibold text-slate-200">Safe / Low Risk</span>
+                  <span className="w-2.5 h-2.5 rounded bg-emerald-500 flex-shrink-0" />
+                  <span className="text-xs font-medium text-slate-200">Safe / Low Risk</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-bold text-white font-mono">2,334</span>
+                  <span className="text-xs font-semibold text-white font-mono">2,334</span>
                   <span className="text-[10px] text-slate-400 ml-1.5">(72.9%)</span>
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-[#08182A] border border-[#1A2D4A] flex justify-between items-center">
+              <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800/80 flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-md bg-rose-500 flex-shrink-0" />
-                  <span className="text-xs font-semibold text-slate-200">High Stockout Risk</span>
+                  <span className="w-2.5 h-2.5 rounded bg-rose-500 flex-shrink-0" />
+                  <span className="text-xs font-medium text-slate-200">High Stockout Risk</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-bold text-rose-400 font-mono">870</span>
+                  <span className="text-xs font-semibold text-rose-400 font-mono">870</span>
                   <span className="text-[10px] text-slate-400 ml-1.5">(27.1%)</span>
                 </div>
               </div>
 
-              <p className="text-[11px] text-slate-400 italic">
+              <p className="text-[11px] text-slate-400">
                 Rule: Stockout flagged when stock &lt; forecasted 7-day demand.
               </p>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-[#1A2D4A] flex justify-between items-center text-xs">
-            <span className="text-slate-400">Class Imbalance Ratio: <strong>2.68 : 1</strong></span>
+          <div className="pt-3 border-t border-slate-800/80 flex justify-between items-center text-xs">
+            <span className="text-slate-400">Class Imbalance Ratio: <strong className="text-slate-200">2.68 : 1</strong></span>
             <Button
               variant="outline"
               size="sm"
@@ -515,48 +509,48 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <h3 className="text-base font-bold text-white">Model Performance Benchmark</h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Empirical evaluation on 481 untouched test items (ROC-AUC & High-Risk Recall)
+                Empirical evaluation on 481 test items (ROC-AUC & High-Risk Recall)
               </p>
             </div>
-            <Badge variant="primary" size="sm">Test Set Isolated</Badge>
+            <Badge variant="primary" size="sm">Test Isolated</Badge>
           </div>
 
-          <div className="space-y-4 my-2">
+          <div className="space-y-3 my-2">
             {/* Tuned XGBoost */}
-            <div className="p-3 bg-[#08182A] rounded-xl border border-blue-500/30 space-y-2">
+            <div className="p-3 bg-blue-500/5 rounded-lg border border-blue-500/30 space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-white">Tuned XGBoost</span>
-                  <span className="px-1.5 py-0.2 rounded text-[10px] bg-blue-500/20 text-[#00D9FF] font-semibold border border-blue-500/30">
+                  <span className="font-semibold text-white">Tuned XGBoost</span>
+                  <span className="px-1.5 py-0.2 rounded text-[10px] bg-blue-500/20 text-blue-300 font-semibold">
                     CHAMPION
                   </span>
                 </div>
-                <span className="font-mono text-xs text-cyan-300 font-bold">ROC-AUC: 0.9197 | Recall: 86.92%</span>
+                <span className="font-mono text-xs text-blue-400 font-semibold">ROC-AUC: 0.9197 | Recall: 86.92%</span>
               </div>
-              <ProgressBar value={91.97} color="cyan" height="h-2" />
+              <ProgressBar value={91.97} color="blue" height="h-1.5" />
             </div>
 
             {/* Random Forest */}
-            <div className="p-3 bg-[#08182A] rounded-xl border border-[#1A2D4A] space-y-2">
+            <div className="p-3 bg-slate-900/60 rounded-lg border border-slate-800/80 space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-slate-300">Random Forest (Balanced)</span>
+                <span className="font-medium text-slate-300">Random Forest (Balanced)</span>
                 <span className="font-mono text-xs text-slate-400">ROC-AUC: 0.9218 | Recall: 76.92%</span>
               </div>
-              <ProgressBar value={92.18} color="blue" height="h-2" />
+              <ProgressBar value={92.18} color="blue" height="h-1.5" />
             </div>
 
             {/* Logistic Regression */}
-            <div className="p-3 bg-[#08182A] rounded-xl border border-[#1A2D4A] space-y-2">
+            <div className="p-3 bg-slate-900/60 rounded-lg border border-slate-800/80 space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-slate-300">Logistic Regression (C=10.0)</span>
+                <span className="font-medium text-slate-300">Logistic Regression (C=10.0)</span>
                 <span className="font-mono text-xs text-slate-400">ROC-AUC: 0.9221 | Recall: 71.54%</span>
               </div>
-              <ProgressBar value={92.21} color="purple" height="h-2" />
+              <ProgressBar value={92.21} color="blue" height="h-1.5" />
             </div>
           </div>
 
-          <div className="pt-3 border-t border-[#1A2D4A] flex justify-between items-center text-xs">
-            <span className="text-slate-400">Stockouts Caught: <strong>113 / 130 (XGBoost)</strong></span>
+          <div className="pt-3 border-t border-slate-800/80 flex justify-between items-center text-xs">
+            <span className="text-slate-400">Stockouts Caught: <strong className="text-slate-200">113 / 130 (XGBoost)</strong></span>
             <Button
               variant="outline"
               size="sm"
@@ -570,19 +564,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* 5. Quick Actions Bar */}
-      <Card className="p-4 bg-gradient-to-r from-[#0D1B2E] via-[#102238] to-[#0D1B2E]">
+      <Card className="p-4 border-slate-800/80 animate-premium-fade stagger-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600/20 text-[#1683FF] flex items-center justify-center flex-shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-blue-600/10 text-blue-400 flex items-center justify-center flex-shrink-0">
               <Compass className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-white">Operational Shortcuts</h4>
+              <h4 className="text-sm font-semibold text-white">Operational Shortcuts</h4>
               <p className="text-xs text-slate-400">Quickly trigger warehouse intelligence workflows</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
             <Button
               size="sm"
               variant="secondary"

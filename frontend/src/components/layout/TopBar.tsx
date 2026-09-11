@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Bell, User, CheckCircle2, Sparkles } from 'lucide-react';
 import type { PageId, SystemStatus } from '../../types';
-import Badge from '../common/Badge';
 
 interface TopBarProps {
   activePage: PageId;
@@ -27,55 +26,56 @@ export const TopBar: React.FC<TopBarProps> = ({
   const isOnline = systemStatus.yolo_ready && systemStatus.xgboost_ready;
 
   return (
-    <header className="h-16 w-full flex-shrink-0 bg-[#08182A]/95 backdrop-blur-md border-b border-[#14253D] z-30 px-4 sm:px-6 md:px-8">
+    <header className="h-14 w-full flex-shrink-0 bg-[#0C121E]/95 backdrop-blur-md border-b border-[#1A2333] z-30 px-4 sm:px-6">
       <div className="max-w-[1440px] mx-auto h-full flex items-center justify-between">
         {/* Left: Page Context */}
         <div className="flex items-center gap-3">
-        <div className="flex flex-col">
-          <span className="font-tech text-xs uppercase font-bold text-cyan-400 tracking-widest">
-            {pageNames[activePage].category}
-          </span>
-          <h1 className="font-tech text-lg font-bold text-white tracking-wide">
-            {pageNames[activePage].title}
-          </h1>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-semibold text-blue-400 uppercase tracking-wider">
+              {pageNames[activePage].category}
+            </span>
+            <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
+              {pageNames[activePage].title}
+            </h1>
+          </div>
         </div>
-      </div>
 
-      {/* Center: Search Field */}
-      <div className="flex-1 max-w-md mx-6 hidden md:block">
-        <div className="relative flex items-center group">
-          <Search className="w-4 h-4 text-slate-400 group-focus-within:text-cyan-400 absolute left-3.5 pointer-events-none transition-colors" />
-          <input
-            type="text"
-            placeholder="Search anything..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#06101F] border border-[#1A2D4A] focus:border-[#00D9FF] focus:shadow-[0_0_15px_rgba(0,217,255,0.25)] text-slate-200 placeholder-slate-500 rounded-xl pl-10 pr-4 py-2 text-xs transition-all outline-none"
-          />
+        {/* Center: Search Field */}
+        <div className="flex-1 max-w-md mx-6 hidden md:block">
+          <div className="relative flex items-center group">
+            <Search className="w-3.5 h-3.5 text-slate-500 group-focus-within:text-blue-400 absolute left-3 pointer-events-none transition-colors" />
+            <input
+              type="text"
+              placeholder="Search assets, telemetry, robots, or models..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-900/90 border border-slate-800 focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/20 text-slate-200 placeholder-slate-500 rounded-lg pl-9 pr-3 py-1.5 text-xs transition-all outline-none"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Right: Status, Notifications & Profile */}
-      <div className="flex items-center gap-4">
-        {/* System Status */}
-        <Badge
-          variant={isOnline ? 'simulation' : 'danger'}
-          dot
-          className={`hidden sm:inline-flex ${isOnline ? 'shadow-[0_0_15px_rgba(16,185,129,0.3)] border-emerald-500/40' : 'shadow-[0_0_15px_rgba(239,68,68,0.3)]'}`}
-        >
-          {isOnline ? 'Simulation System Online' : 'System Degraded'}
-        </Badge>
+        {/* Right: Status, Notifications & Profile */}
+        <div className="flex items-center gap-3">
+          {/* System Status */}
+          <div className={`hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium border ${
+            isOnline 
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+              : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+            <span>{isOnline ? 'System Operational' : 'System Degraded'}</span>
+          </div>
 
-        {/* Notifications Popover */}
-        <div className="relative">
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="w-9 h-9 rounded-xl bg-[#0D1B2E] border border-[#1A2D4A] hover:border-cyan-500/50 hover:shadow-[0_0_12px_rgba(0,217,255,0.25)] flex items-center justify-center text-slate-300 hover:text-white transition relative"
-            title="Notifications"
-          >
-            <Bell className="w-4 h-4" />
-            <span className="w-2 h-2 rounded-full bg-cyan-400 absolute top-2 right-2 ring-2 ring-[#0D1B2E] shadow-[0_0_6px_#00D9FF]" />
-          </button>
+          {/* Notifications Popover */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition relative"
+              title="Notifications"
+            >
+              <Bell className="w-3.5 h-3.5" />
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 absolute top-2 right-2" />
+            </button>
 
           {showNotifications && (
             <div className="absolute right-0 mt-2 w-80 bg-[#0D1B2E] border border-[#1E3A5F] rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">

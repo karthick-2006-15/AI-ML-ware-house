@@ -65,6 +65,17 @@ def get_status():
         "yolo_ready": wh_loaded
     })
 
+import json
+import cv2
+import numpy as np
+import base64
+from typing import Optional
+
+class FrameDetectRequest(BaseModel):
+    image: str
+    confidence: Optional[float] = 0.25
+    render_annotated: Optional[bool] = False
+
 @ml_router.post("/detect")
 async def detect_objects(file: UploadFile = File(...)):
     if not vision_infer:
@@ -90,6 +101,29 @@ async def detect_objects(file: UploadFile = File(...)):
         return JSONResponse(content=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
+
+@ml_router.post("/detect_frame")
+async def detect_frame(request: FrameDetectRequest):
+    if not vision_infer:
+        raise HTTPException(status_code=503, detail="Vision model not loaded.")
+    try:
+        data_str = request.image
+        if "," in data_str:
+            data_str = data_str.split(",", 1)[1]
+        img_bytes = base64.b64decode(data_str)
+        nparr = np.frombuffer(img_bytes, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if img is None:
+            raise ValueError("Could not decode frame image.")
+            
+        result = vision_infer.predict_frame(
+            img, 
+            conf_threshold=request.confidence if request.confidence is not None else 0.25, 
+            render_annotated=bool(request.render_annotated)
+        )
+        return JSONResponse(content=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Frame inference error: {str(e)}")
 
 @ml_router.post("/predict")
 def predict_warehouse(request: WarehousePredictRequest):

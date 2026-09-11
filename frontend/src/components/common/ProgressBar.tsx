@@ -28,9 +28,9 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
   return (
     <div className={`w-full flex flex-col gap-1 ${className}`}>
-      <div className={`w-full bg-[#08182A] border border-[#1A2D4A] rounded-full overflow-hidden ${height}`}>
+      <div className={`w-full bg-slate-900 border border-slate-800 rounded-full overflow-hidden ${height}`}>
         <div
-          className={`${height} rounded-full transition-all duration-500 ease-out ${colorStyles[color]}`}
+          className={`${height} rounded-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${colorStyles[color]}`}
           style={{ width: `${clamped}%` }}
         />
       </div>

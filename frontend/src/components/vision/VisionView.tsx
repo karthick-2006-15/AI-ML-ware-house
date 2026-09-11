@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Scan, 
   UploadCloud, 
@@ -6,11 +6,13 @@ import {
   Image as ImageIcon,
   Sparkles,
   X,
-  Target
+  Target,
+  Video
 } from 'lucide-react';
 import Card from '../common/Card';
 import Badge from '../common/Badge';
 import Button from '../common/Button';
+import { LiveWebcamFeed } from './LiveWebcamFeed';
 import type { SystemStatus, VisionResult } from '../../types';
 
 interface VisionViewProps {
@@ -38,6 +40,14 @@ export const VisionView: React.FC<VisionViewProps> = ({
   onVisionUpload,
   onClearImage,
 }) => {
+  const [visionMode, setVisionMode] = useState<'live' | 'static'>('live');
+
+  const handleLiveSnapshot = (file: File) => {
+    if (onSelectSample) {
+      onSelectSample(file);
+    }
+  };
+
   const handleSampleClick = async (filename: string) => {
     try {
       const res = await fetch(`/samples/${filename}`);
@@ -56,21 +66,21 @@ export const VisionView: React.FC<VisionViewProps> = ({
       {/* 1. Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-blue-400 tracking-wider uppercase mb-1">
-            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 mb-1">
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
             Computer Vision Perception System
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
             Computer Vision
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Warehouse object detection powered by YOLOv8
+          <p className="text-slate-400 text-xs sm:text-sm mt-1">
+            Warehouse object detection powered by fine-tuned YOLOv8s.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Badge variant={systemStatus.yolo_ready ? 'success' : 'danger'} size="md" dot>
-            {systemStatus.yolo_ready ? 'YOLOv8 RUNTIME ACTIVE' : 'MODEL UNAVAILABLE'}
+            {systemStatus.yolo_ready ? 'YOLOv8 Runtime Active' : 'Model Unavailable'}
           </Badge>
           <span className="text-xs text-slate-400 font-mono hidden sm:inline-block">
             Inference: ~9.9ms / frame
@@ -79,81 +89,132 @@ export const VisionView: React.FC<VisionViewProps> = ({
       </div>
 
       {/* 2. Model Cards & YOLO Performance Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
         {/* Model Card 1: Warehouse Detector */}
-        <Card className="md:col-span-3 p-4 flex flex-col justify-between border-blue-500/30">
+        <Card className="md:col-span-3 p-4 flex flex-col justify-between border-slate-800/80">
           <div>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-[10px] uppercase font-bold text-blue-400 font-mono">Fine-Tuned Model</span>
-              <Badge variant="success" size="sm">Model Loaded</Badge>
+              <span className="text-[10px] uppercase font-semibold text-amber-400">Fine-Tuned Model</span>
+              <Badge variant="success" size="sm">Loaded</Badge>
             </div>
-            <h3 className="text-sm font-bold text-white">Warehouse Detector</h3>
+            <h3 className="text-sm font-semibold text-white">Warehouse Detector</h3>
             <span className="text-xs text-slate-400 font-mono">YOLOv8s Custom Weights</span>
             <div className="mt-3 flex flex-wrap gap-1">
               {['person', 'box', 'pallet', 'forklift', 'robot', 'robotic_arm'].map((cls) => (
-                <span key={cls} className="text-[10px] px-1.5 py-0.5 rounded bg-[#08182A] text-slate-300 border border-[#1A2D4A]">
+                <span key={cls} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900/80 text-slate-300 border border-slate-800">
                   {cls}
                 </span>
               ))}
             </div>
           </div>
-          <span className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-[#1A2D4A]">
+          <span className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-slate-800/80">
             Trained on 10,691 warehouse frames
           </span>
         </Card>
 
         {/* Model Card 2: General Detector */}
-        <Card className="md:col-span-3 p-4 flex flex-col justify-between border-cyan-500/30">
+        <Card className="md:col-span-3 p-4 flex flex-col justify-between border-slate-800/80">
           <div>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-[10px] uppercase font-bold text-cyan-400 font-mono">Backbone Model</span>
-              <Badge variant="cyan" size="sm">Model Loaded</Badge>
+              <span className="text-[10px] uppercase font-semibold text-slate-400">Backbone Model</span>
+              <Badge variant="neutral" size="sm">Loaded</Badge>
             </div>
-            <h3 className="text-sm font-bold text-white">General Detector</h3>
+            <h3 className="text-sm font-semibold text-white">General Detector</h3>
             <span className="text-xs text-slate-400 font-mono">COCO Pretrained</span>
             <p className="text-xs text-slate-400 mt-2">
               80 general object classes for baseline contextual cross-referencing.
             </p>
           </div>
-          <span className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-[#1A2D4A]">
+          <span className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-slate-800/80">
             Zero-shot dual inference arbitration
           </span>
         </Card>
 
         {/* 4 YOLO Performance Metrics */}
         <div className="md:col-span-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card className="p-3.5 flex flex-col justify-between text-center">
-            <span className="text-[10px] uppercase font-bold text-slate-400">mAP@50</span>
-            <span className="text-2xl font-black text-white font-mono my-1">79.0%</span>
-            <span className="text-[10px] text-emerald-400 font-semibold">+9.39% over baseline</span>
+          <Card className="p-3.5 flex flex-col justify-between text-center border-slate-800/80">
+            <span className="text-[10px] uppercase font-semibold text-slate-400">mAP@50</span>
+            <span className="text-2xl font-bold text-white font-mono my-1">79.0%</span>
+            <span className="text-[10px] text-emerald-400 font-medium">+9.39% over baseline</span>
           </Card>
 
-          <Card className="p-3.5 flex flex-col justify-between text-center">
-            <span className="text-[10px] uppercase font-bold text-slate-400">mAP@50:95</span>
-            <span className="text-2xl font-black text-cyan-400 font-mono my-1">51.1%</span>
+          <Card className="p-3.5 flex flex-col justify-between text-center border-slate-800/80">
+            <span className="text-[10px] uppercase font-semibold text-slate-400">mAP@50:95</span>
+            <span className="text-2xl font-bold text-amber-400 font-mono my-1">51.1%</span>
             <span className="text-[10px] text-slate-400">Rigorous IoU</span>
           </Card>
 
-          <Card className="p-3.5 flex flex-col justify-between text-center">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Precision</span>
-            <span className="text-2xl font-black text-blue-400 font-mono my-1">80.9%</span>
+          <Card className="p-3.5 flex flex-col justify-between text-center border-slate-800/80">
+            <span className="text-[10px] uppercase font-semibold text-slate-400">Precision</span>
+            <span className="text-2xl font-bold text-slate-200 font-mono my-1">80.9%</span>
             <span className="text-[10px] text-slate-400">Low false alarms</span>
           </Card>
 
-          <Card className="p-3.5 flex flex-col justify-between text-center">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Recall</span>
-            <span className="text-2xl font-black text-purple-400 font-mono my-1">72.4%</span>
+          <Card className="p-3.5 flex flex-col justify-between text-center border-slate-800/80">
+            <span className="text-[10px] uppercase font-semibold text-slate-400">Recall</span>
+            <span className="text-2xl font-bold text-purple-400 font-mono my-1">72.4%</span>
             <span className="text-[10px] text-slate-400">Isolated 1,601 test</span>
           </Card>
         </div>
       </div>
 
-      {/* 3. Main Two-Column Workspace: Left (Upload) + Right (Detection Results) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* 2.5 View Mode Selector Tabs */}
+      <div className="flex items-center justify-between gap-4 border-b border-slate-800 pb-3 pt-2">
+        <div className="flex items-center gap-2 p-1 bg-slate-900/80 rounded-xl border border-slate-800/80">
+          <button
+            type="button"
+            onClick={() => setVisionMode('live')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              visionMode === 'live'
+                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Video className="w-4 h-4" />
+            <span>Live Camera & CCTV Stream</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-1" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setVisionMode('static')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              visionMode === 'static'
+                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <UploadCloud className="w-4 h-4" />
+            <span>Static Inspection & Uploads</span>
+            {visionResults && (
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-900 text-amber-400 font-mono">
+                {visionResults.detections?.length || 0}
+              </span>
+            )}
+          </button>
+        </div>
+
+        <div className="text-xs text-slate-400 hidden md:flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <span className="font-mono text-slate-300">YOLOv8s Dual Arbitration Engine</span>
+        </div>
+      </div>
+
+      {/* 3. Conditional Content: Live Feed vs Static Workspace */}
+      {visionMode === 'live' ? (
+        <LiveWebcamFeed
+          yoloReady={systemStatus.yolo_ready}
+          onCaptureSnapshot={(file) => {
+            handleLiveSnapshot(file);
+          }}
+        />
+      ) : (
+        /* 3. Main Two-Column Workspace: Left (Upload) + Right (Detection Results) */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT: Upload & Image Preview (5 cols) */}
         <Card className="lg:col-span-5 space-y-5">
-          <div className="pb-3 border-b border-[#1A2D4A]">
-            <h2 className="text-base font-bold text-white">Upload Warehouse Image</h2>
+          <div className="pb-3 border-b border-slate-800/80">
+            <h2 className="text-base font-semibold text-white">Upload Warehouse Image</h2>
             <p className="text-xs text-slate-400 mt-0.5">
               Select or drop an aisle inspection, forklift, or pallet stack image
             </p>
@@ -161,7 +222,7 @@ export const VisionView: React.FC<VisionViewProps> = ({
 
           {/* Quick Test Samples */}
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
               Instant Test Presets:
             </span>
             <div className="grid grid-cols-3 gap-2">
@@ -177,7 +238,7 @@ export const VisionView: React.FC<VisionViewProps> = ({
                   key={sample.file}
                   type="button"
                   onClick={() => handleSampleClick(sample.file)}
-                  className="px-2.5 py-1.5 rounded-lg bg-[#08182A] border border-[#1A2D4A] hover:border-blue-500/50 hover:bg-blue-950/20 text-slate-300 hover:text-white text-[11px] font-medium transition text-center truncate"
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-amber-500/40 text-slate-300 hover:text-white text-[11px] font-medium transition-colors text-center truncate"
                 >
                   {sample.name}
                 </button>
@@ -187,7 +248,7 @@ export const VisionView: React.FC<VisionViewProps> = ({
 
           {/* Drag & Drop Area */}
           {!visionPreview ? (
-            <div className="border-2 border-dashed border-[#1E3A5F] hover:border-[#1683FF] rounded-2xl p-8 text-center transition-all bg-[#08182A] flex flex-col items-center justify-center min-h-[220px]">
+            <div className="border border-dashed border-slate-700 hover:border-amber-500 rounded-xl p-8 text-center transition-colors bg-slate-900/40 flex flex-col items-center justify-center min-h-[220px]">
               <input
                 type="file"
                 id="vision-upload-input"
@@ -199,13 +260,13 @@ export const VisionView: React.FC<VisionViewProps> = ({
                 htmlFor="vision-upload-input"
                 className="cursor-pointer flex flex-col items-center w-full"
               >
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[#1683FF] mb-3">
-                  <UploadCloud className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-3">
+                  <UploadCloud className="w-5 h-5" />
                 </div>
                 <span className="text-sm font-semibold text-white mb-1">
                   Drag & drop an image here
                 </span>
-                <span className="text-xs text-cyan-400 font-medium hover:underline mb-2">
+                <span className="text-xs text-amber-400 font-medium hover:underline mb-2">
                   or Browse Files
                 </span>
                 <span className="text-[11px] text-slate-400">
@@ -216,27 +277,26 @@ export const VisionView: React.FC<VisionViewProps> = ({
           ) : (
             /* Image Preview Card */
             <div className="space-y-3">
-              <div className="relative rounded-2xl overflow-hidden border border-[#1A2D4A] bg-black/80 max-h-[280px] flex items-center justify-center group">
+              <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950 max-h-[280px] flex items-center justify-center group">
                 <img
                   src={visionPreview}
                   alt="Uploaded Warehouse Frame"
                   className="max-h-[260px] w-full object-contain"
                 />
 
-                {/* Laser Scanning Beam when analyzing */}
+                {/* Subtle loading overlay */}
                 {isVisionLoading && (
-                  <div className="scanner-bar animate-laser" />
+                  <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs font-medium text-slate-200">
+                      <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+                      Processing frame...
+                    </div>
+                  </div>
                 )}
-
-                {/* HUD Corner Accents */}
-                <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-cyan-400 pointer-events-none" />
-                <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-cyan-400 pointer-events-none" />
-                <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-cyan-400 pointer-events-none" />
-                <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-cyan-400 pointer-events-none" />
 
                 <button
                   onClick={onClearImage}
-                  className="absolute top-3 right-3 p-1.5 rounded-lg bg-black/80 hover:bg-black text-slate-300 hover:text-white transition z-30"
+                  className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-900 text-slate-300 hover:text-white transition-colors z-30"
                   title="Remove image"
                 >
                   <X className="w-4 h-4" />
@@ -254,7 +314,7 @@ export const VisionView: React.FC<VisionViewProps> = ({
           )}
 
           {visionError && (
-            <div className="p-3 bg-rose-950/40 border border-rose-500/40 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg text-xs text-rose-300 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 flex-shrink-0 text-rose-400" />
               <span>{visionError}</span>
             </div>
@@ -274,7 +334,7 @@ export const VisionView: React.FC<VisionViewProps> = ({
             Run Dual-Layer Inference
           </Button>
 
-          <div className="p-3 bg-[#08182A] rounded-xl border border-[#1A2D4A] text-xs space-y-1 text-slate-400">
+          <div className="p-3 bg-slate-900/60 rounded-lg border border-slate-800/80 text-xs space-y-1 text-slate-400">
             <span className="font-semibold text-slate-300 block">Perception Pipeline:</span>
             <p>1. Spatial tensor preprocessing (640x640 letterbox scaling)</p>
             <p>2. YOLOv8 multi-class detection with bounding box NMS</p>
@@ -284,13 +344,13 @@ export const VisionView: React.FC<VisionViewProps> = ({
 
         {/* RIGHT: Detection Results (7 cols) */}
         <Card className="lg:col-span-7 flex flex-col justify-between min-h-[460px]">
-          <div className="flex justify-between items-center pb-3 border-b border-[#1A2D4A] mb-4">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-800/80 mb-4">
             <div className="flex items-center gap-2">
-              <Scan className="w-4 h-4 text-cyan-400" />
-              <h2 className="text-base font-bold text-white">Detection Results</h2>
+              <Scan className="w-4 h-4 text-blue-400" />
+              <h2 className="text-base font-semibold text-white">Detection Results</h2>
             </div>
             {visionResults && (
-              <Badge variant="cyan" size="sm">
+              <Badge variant="primary" size="sm">
                 {visionResults.object_count !== undefined ? visionResults.object_count : visionResults.detections.length} Objects Detected
               </Badge>
             )}
@@ -299,45 +359,39 @@ export const VisionView: React.FC<VisionViewProps> = ({
           {visionResults?.annotated_image ? (
             <div className="space-y-4">
               {/* Annotated Image */}
-              <div className="relative rounded-2xl overflow-hidden border border-[#1A2D4A] bg-black/90 flex items-center justify-center group shadow-xl shadow-black/60">
+              <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center">
                 <img
                   src={visionResults.annotated_image}
                   alt="YOLOv8 Annotated Warehouse Frame"
                   className="max-h-[340px] w-full object-contain"
                 />
-
-                {/* HUD Corner Decals */}
-                <div className="absolute top-2 left-2 w-3.5 h-3.5 border-t-2 border-l-2 border-emerald-400 pointer-events-none" />
-                <div className="absolute top-2 right-2 w-3.5 h-3.5 border-t-2 border-r-2 border-emerald-400 pointer-events-none" />
-                <div className="absolute bottom-2 left-2 w-3.5 h-3.5 border-b-2 border-l-2 border-emerald-400 pointer-events-none" />
-                <div className="absolute bottom-2 right-2 w-3.5 h-3.5 border-b-2 border-r-2 border-emerald-400 pointer-events-none" />
               </div>
 
               {/* Detections Pill List */}
               <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
                   Identified Entities
                 </span>
-                <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
                   {visionResults.detections.map((det, idx) => (
                     <div
                       key={idx}
-                      className="p-2.5 bg-[#08182A] rounded-xl border border-[#1A2D4A] hover:border-cyan-500/50 hover:bg-cyan-950/20 flex justify-between items-center text-xs transition-all duration-200"
+                      className="p-2.5 bg-slate-900/60 rounded-lg border border-slate-800/80 hover:border-slate-700 flex justify-between items-center text-xs transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                        <span className="font-bold text-white capitalize">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                        <span className="font-semibold text-white capitalize">
                           {det.class || det.class_name}
                         </span>
                         <span className={`text-[10px] px-1.5 py-0.2 rounded font-medium ${
                           det.source === 'warehouse'
-                            ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
-                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
+                            : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
                         }`}>
                           {det.source === 'warehouse' ? 'Warehouse Detector' : 'General Detector'}
                         </span>
                       </div>
-                      <span className="font-mono font-bold text-cyan-300 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">
+                      <span className="font-mono text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
                         {(det.confidence * 100).toFixed(1)}% conf
                       </span>
                     </div>
@@ -353,7 +407,7 @@ export const VisionView: React.FC<VisionViewProps> = ({
 
               {/* Image Summary */}
               {visionResults.image_summary && (
-                <div className="p-3 bg-[#08182A] rounded-xl border border-[#1A2D4A] text-xs">
+                <div className="p-3 bg-slate-900/60 rounded-lg border border-slate-800/80 text-xs">
                   <span className="text-slate-400 font-semibold block mb-0.5">Summary:</span>
                   <p className="text-slate-200">{visionResults.image_summary}</p>
                 </div>
@@ -361,10 +415,10 @@ export const VisionView: React.FC<VisionViewProps> = ({
             </div>
           ) : visionPreview ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[#1683FF] mb-3">
-                <Sparkles className="w-7 h-7" />
+              <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3">
+                <Sparkles className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-bold text-white mb-1">Image Loaded & Ready</h3>
+              <h3 className="text-sm font-semibold text-white mb-1">Image Loaded & Ready</h3>
               <p className="text-xs text-slate-400 max-w-sm">
                 Click &quot;Run Dual-Layer Inference&quot; to execute YOLOv8 bounding box detection on this frame.
               </p>
@@ -372,16 +426,16 @@ export const VisionView: React.FC<VisionViewProps> = ({
           ) : (
             /* Clean Empty State */
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-              <div className="w-14 h-14 rounded-2xl bg-slate-800/40 border border-[#1A2D4A] flex items-center justify-center text-slate-400 mb-3">
-                <ImageIcon className="w-7 h-7" />
+              <div className="w-12 h-12 rounded-xl bg-slate-800/40 border border-slate-700/60 flex items-center justify-center text-slate-400 mb-3">
+                <ImageIcon className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-bold text-slate-300 mb-1">No Image Loaded</h3>
+              <h3 className="text-sm font-semibold text-slate-300 mb-1">No Image Loaded</h3>
               <p className="text-xs text-slate-400 max-w-sm mb-4">
                 Upload a warehouse image to begin real-time YOLOv8 object detection.
               </p>
               <label
                 htmlFor="vision-upload-input"
-                className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-[#102238] hover:bg-[#162D4A] text-white border border-[#1E3A5F] transition"
+                className="cursor-pointer inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition-colors"
               >
                 <UploadCloud className="w-3.5 h-3.5 text-blue-400" />
                 <span>Upload Image</span>
@@ -390,6 +444,7 @@ export const VisionView: React.FC<VisionViewProps> = ({
           )}
         </Card>
       </div>
+      )}
     </div>
   );
 };

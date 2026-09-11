@@ -69,6 +69,133 @@ export interface PredictResult {
   operational_recommendation?: string;
 }
 
+export interface RobotState {
+  id: string;
+  x: number;
+  y: number;
+  state: string;
+  health: 'HEALTHY' | 'WARNING' | 'FAILED' | 'RECOVERING';
+  health_percent?: number;
+  battery: number;
+  speed?: number;
+  path?: [number, number][];
+  task?: string | null;
+  accumulated_distance?: number;
+  completed_tasks?: number;
+  replans_count?: number;
+  conflicts_avoided?: number;
+  wait_counter?: number;
+}
+
+export interface ShelfState {
+  id: string;
+  x: number;
+  y: number;
+  zone?: string;
+  products_count?: number;
+  category?: string;
+}
+
+export interface StationState {
+  id: string;
+  x: number;
+  y: number;
+  type: 'packing' | 'charging';
+  status: 'AVAILABLE' | 'OCCUPIED' | 'OFFLINE';
+  occupied_by?: string | null;
+}
+
+export interface DynamicObstacleState {
+  id: string;
+  x: number;
+  y: number;
+  duration?: number;
+  obstacle_type?: 'barrier' | 'spill' | 'maintenance';
+}
+
+export interface ZoneInfo {
+  name: string;
+  robots: number;
+  tasks: number;
+  obstacles: number;
+  wait_ticks: number;
+  congestion: 'LOW' | 'MEDIUM' | 'HIGH';
+  xgb_risk?: 'LOW' | 'MEDIUM' | 'HIGH';
+  performance_kpi?: number;
+  demand_forecast?: number;
+}
+
+export interface TaskInfo {
+  id: string;
+  sku: string;
+  product_name?: string;
+  source: string;
+  destination: string;
+  priority: 'HIGH' | 'NORMAL' | 'LOW';
+  status: string;
+  assigned_robot_id?: string | null;
+  created_at: number;
+  estimated_distance: number;
+  estimated_completion_time: number;
+  actual_completion_time?: number | null;
+}
+
+export interface TimelineEvent {
+  id: string;
+  tick: number;
+  type: string;
+  message: string;
+  severity: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
+  details?: Record<string, any>;
+}
+
+export interface CoordinatorComparison {
+  intelligent_coordinator: {
+    name: string;
+    collisions: number;
+    deadlocks_unresolved: number;
+    avg_fulfillment_time: number;
+    throughput_rate: number;
+    fleet_utilization_pct: number;
+    conflicts_resolved: number;
+  };
+  naive_baseline: {
+    name: string;
+    collisions: number;
+    deadlocks_unresolved: number;
+    avg_fulfillment_time: number;
+    throughput_rate: number;
+    fleet_utilization_pct: number;
+    conflicts_resolved: number;
+  };
+  improvements: {
+    collision_elimination: string;
+    fulfillment_speedup: string;
+    throughput_boost: string;
+  };
+}
+
+export interface SimMetrics {
+  completed_orders: number;
+  pending_orders?: number;
+  failed_orders?: number;
+  average_fulfillment_time: number;
+  total_distance: number;
+  collisions: number;
+  conflicts_avoided?: number;
+  replanning_events?: number;
+  deadlocks_detected?: number;
+  deadlocks_resolved?: number;
+  robot_failures?: number;
+  charging_events: number;
+  average_battery: number;
+  utilization: number;
+  active_robots?: number;
+  total_robots?: number;
+  throughput_rate?: number;
+  comparison?: CoordinatorComparison;
+}
+
 export interface EntityState {
   id: string;
   x: number;
@@ -80,23 +207,43 @@ export interface EntityState {
   task?: string;
 }
 
-export interface SimMetrics {
-  completed_orders?: number;
-  average_fulfillment_time?: number;
-  total_distance?: number;
-  collisions?: number;
-  average_battery?: number;
-  charging_events?: number;
-  utilization?: number;
-}
-
 export interface SimState {
   tick: number;
-  robots: EntityState[];
-  shelves: EntityState[];
-  stations: EntityState[];
+  running?: boolean;
+  speed?: number;
+  robots: RobotState[];
+  shelves: ShelfState[];
+  stations: StationState[];
+  dynamic_obstacles?: DynamicObstacleState[];
+  static_obstacles?: { x: number; y: number }[];
+  zones?: Record<string, ZoneInfo>;
+  tasks?: {
+    pending: TaskInfo[];
+    active: TaskInfo[];
+  };
+  events?: TimelineEvent[];
   metrics?: SimMetrics;
 }
+
+export interface ScenarioInfo {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  badge: string;
+}
+
+export type WarehouseEditTool = 
+  | 'select'
+  | 'shelf'
+  | 'packing_station'
+  | 'charging_station'
+  | 'robot'
+  | 'obstacle'
+  | 'dynamic_obstacle'
+  | 'delete';
+
+export type RouteViewMode = 'ALL' | 'ACTIVE' | 'SELECTED' | 'NONE';
 
 export interface SimTask {
   id: string;
@@ -122,3 +269,4 @@ export type PageId =
   | 'analytics' 
   | 'experiments' 
   | 'architecture';
+

@@ -19,10 +19,10 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const variantStyles: Record<BadgeVariant, { bg: string; text: string; border: string; dotColor: string }> = {
     primary: {
-      bg: 'bg-blue-500/10',
-      text: 'text-[#1683FF]',
-      border: 'border-blue-500/30',
-      dotColor: 'bg-[#1683FF]',
+      bg: 'bg-amber-500/10',
+      text: 'text-amber-300',
+      border: 'border-amber-500/30',
+      dotColor: 'bg-amber-400',
     },
     cyan: {
       bg: 'bg-cyan-500/10',
@@ -73,10 +73,13 @@ export const Badge: React.FC<BadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-tech font-bold uppercase tracking-wider rounded-full border ${style.bg} ${style.text} ${style.border} ${sizeClasses} ${className}`}
+      className={`inline-flex items-center gap-1.5 font-medium rounded-full border transition-all duration-200 ${style.bg} ${style.text} ${style.border} ${sizeClasses} ${className}`}
     >
       {dot && (
-        <span className={`w-1.5 h-1.5 rounded-full ${style.dotColor} animate-pulse`} />
+        <span className="relative flex h-2 w-2 mr-0.5">
+          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-35 ${style.dotColor}`} />
+          <span className={`relative inline-flex rounded-full h-2 w-2 ${style.dotColor}`} />
+        </span>
       )}
       {children}
     </span>

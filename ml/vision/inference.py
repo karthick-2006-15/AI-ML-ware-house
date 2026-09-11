@@ -72,15 +72,15 @@ class VisionInference:
                 except Exception as e:
                     print(f"[VISION] Failed to load candidate {cand}: {e}")
 
-    def predict_image(self, image_path: str, conf_threshold: float = 0.25):
-        if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Image {image_path} not found.")
+    def predict_frame(self, img: np.ndarray, conf_threshold: float = 0.25, render_annotated: bool = True):
+        if img is None or img.size == 0:
+            raise ValueError("Empty or invalid image frame provided.")
             
         gen_detections = []
         wh_detections = []
         
         # 1. Run General Detector (COCO) with Class Filtering
-        gen_results = self.general_model(image_path, conf=conf_threshold, verbose=False)
+        gen_results = self.general_model(img, conf=conf_threshold, verbose=False)
         for result in gen_results:
             for box in result.boxes:
                 x1, y1, x2, y2 = box.xyxy[0].tolist()
@@ -99,7 +99,7 @@ class VisionInference:
                 
         # 2. Run Warehouse Detector (6 Standardized Classes)
         if self.warehouse_model:
-            wh_results = self.warehouse_model(image_path, conf=conf_threshold, verbose=False)
+            wh_results = self.warehouse_model(img, conf=conf_threshold, verbose=False)
             for result in wh_results:
                 for box in result.boxes:
                     x1, y1, x2, y2 = box.xyxy[0].tolist()
@@ -119,7 +119,6 @@ class VisionInference:
         
         # Add high-priority warehouse detections first
         for det in wh_detections:
-            # Check overlap among warehouse detections
             if not any(calculate_iou(det["bbox"], ex["bbox"]) > 0.65 and det["class"] == ex["class"] for ex in final_detections):
                 final_detections.append(det)
 
@@ -131,7 +130,6 @@ class VisionInference:
                 iou = calculate_iou(g["bbox"], ex["bbox"])
                 if iou > 0.4:
                     is_dup = True
-                    # If general saw a person and warehouse saw a person, take max confidence
                     if g_cls == "person" and ex["class"].lower() == "person":
                         if g["confidence"] > ex["confidence"]:
                             ex["confidence"] = g["confidence"]
@@ -139,10 +137,10 @@ class VisionInference:
             if not is_dup:
                 final_detections.append(g)
 
-        # Render annotated image
+        # Render annotated image if requested
         annotated_b64 = None
-        img = cv2.imread(image_path)
-        if img is not None:
+        if render_annotated and img is not None:
+            display_img = img.copy()
             for det in final_detections:
                 x1, y1, x2, y2 = [int(v) for v in det["bbox"]]
                 cname = det["class"]
@@ -150,13 +148,13 @@ class VisionInference:
                 label = f"{cname} {conf:.2f}"
                 
                 color = CLASS_PALETTE.get(cname.lower(), (200, 200, 0))
-                cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
+                cv2.rectangle(display_img, (x1, y1), (x2, y2), color, 2)
                 
                 (lw, lh), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)
-                cv2.rectangle(img, (x1, max(0, y1 - lh - 6)), (x1 + lw + 6, y1), color, -1)
-                cv2.putText(img, label, (x1 + 3, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2)
+                cv2.rectangle(display_img, (x1, max(0, y1 - lh - 6)), (x1 + lw + 6, y1), color, -1)
+                cv2.putText(display_img, label, (x1 + 3, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2)
                 
-            _, buffer = cv2.imencode('.jpg', img)
+            _, buffer = cv2.imencode('.jpg', display_img)
             annotated_b64 = base64.b64encode(buffer).decode('utf-8')
             
         unique_classes = sorted(list(set(d["class"] for d in final_detections)))
@@ -169,6 +167,14 @@ class VisionInference:
             "image_summary": f"This image contains: {', '.join(unique_classes)}" if unique_classes else "No supported objects were confidently detected.",
             "annotated_image": f"data:image/jpeg;base64,{annotated_b64}" if annotated_b64 else None
         }
+
+    def predict_image(self, image_path: str, conf_threshold: float = 0.25):
+        if not os.path.exists(image_path):
+            raise FileNotFoundError(f"Image {image_path} not found.")
+        img = cv2.imread(image_path)
+        if img is None:
+            raise ValueError(f"Could not read image from {image_path}")
+        return self.predict_frame(img, conf_threshold=conf_threshold, render_annotated=True)
 
 if __name__ == "__main__":
     import sys, pprint

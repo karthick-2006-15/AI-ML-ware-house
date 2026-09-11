@@ -42,30 +42,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`relative h-screen flex-shrink-0 bg-[#08182A] border-r border-[#14253D] z-30 flex flex-col justify-between transition-all duration-300 select-none ${
+      className={`relative h-screen flex-shrink-0 bg-[#0C121E] border-r border-[#1A2333] z-30 flex flex-col justify-between transition-all duration-300 select-none ${
         collapsed ? 'w-20' : 'w-64'
       }`}
     >
       {/* Top: Logo & Title */}
-      <div className="p-5 border-b border-[#14253D] flex items-center justify-between">
+      <div className="p-4 border-b border-[#1A2333] flex items-center justify-between">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1683FF] via-[#00D9FF] to-[#0099FF] flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,217,255,0.45)] flex-shrink-0 animate-pulse-glow">
-            <Layers className="w-5 h-5 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+          <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+            <Layers className="w-5 h-5 text-white" />
           </div>
           {!collapsed && (
             <div className="flex flex-col min-w-0">
-              <span className="font-tech font-extrabold text-base text-white tracking-wider leading-none whitespace-nowrap neon-text-cyan">
+              <span className="font-bold text-sm text-white tracking-tight leading-none whitespace-nowrap">
                 AI WAREHOUSE
               </span>
-              <span className="font-tech text-[10px] text-cyan-400 font-bold tracking-widest uppercase mt-1 whitespace-nowrap">
-                Autonomous AI
+              <span className="text-[11px] text-slate-400 font-medium mt-1 whitespace-nowrap">
+                Fleet Management
               </span>
             </div>
           )}
         </div>
         <button
           onClick={onToggleCollapse}
-          className="text-slate-400 hover:text-cyan-400 p-1 rounded-lg hover:bg-slate-800/60 transition"
+          className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-800/60 transition"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -73,9 +73,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 py-5 px-3 space-y-1.5 overflow-y-auto">
-        <div className={`px-3 mb-2 font-tech text-[11px] font-bold uppercase tracking-widest text-slate-400 ${collapsed ? 'text-center' : ''}`}>
-          {collapsed ? '•••' : 'Core Systems'}
+      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <div className={`px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 ${collapsed ? 'text-center' : ''}`}>
+          {collapsed ? '•••' : 'Platform'}
         </div>
         {navItems.map((item) => {
           const isActive = activePage === item.id;
@@ -84,27 +84,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => onSelectPage(item.id)}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group relative ${
                 isActive
-                  ? 'bg-gradient-to-r from-blue-600/30 to-cyan-500/15 text-white border border-cyan-500/50 shadow-[0_0_15px_rgba(0,217,255,0.25)]'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 hover:border hover:border-[#1E3A5F]'
+                  ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
               } ${collapsed ? 'justify-center px-0' : ''}`}
               title={collapsed ? item.label : undefined}
             >
-              {/* Left active glowing indicator strip */}
               {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-[#00D9FF] shadow-[0_0_10px_#00D9FF]" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r bg-blue-500" />
               )}
               <Icon
-                className={`w-5 h-5 flex-shrink-0 transition-colors ${
-                  isActive ? 'text-[#00D9FF] drop-shadow-[0_0_8px_rgba(0,217,255,0.8)]' : 'text-slate-400 group-hover:text-cyan-300'
+                className={`w-4 h-4 flex-shrink-0 transition-colors ${
+                  isActive ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'
                 }`}
               />
               {!collapsed && (
-                <span className="truncate font-tech text-base font-semibold tracking-wide">{item.label}</span>
-              )}
-              {isActive && (
-                <div className="absolute right-2.5 w-2 h-2 rounded-full bg-[#00D9FF] shadow-[0_0_8px_#00D9FF] animate-pulse" />
+                <span className="truncate text-xs font-semibold">{item.label}</span>
               )}
             </button>
           );
@@ -112,10 +108,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Bottom Actions: Settings & Help */}
-      <div className="p-3 border-t border-[#14253D] space-y-1">
+      <div className="p-3 border-t border-[#1A2333] space-y-1">
         <button
           onClick={onOpenSettings}
-          className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-tech font-semibold tracking-wide text-slate-400 hover:text-white hover:bg-slate-800/40 transition ${
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/40 transition ${
             collapsed ? 'justify-center px-0' : ''
           }`}
           title="Settings"
@@ -125,22 +121,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
         <button
           onClick={onOpenAbout}
-          className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-tech font-semibold tracking-wide text-slate-400 hover:text-white hover:bg-slate-800/40 transition ${
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/40 transition ${
             collapsed ? 'justify-center px-0' : ''
           }`}
           title="Help & Project Info"
         >
           <HelpCircle className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span>Help / About</span>}
+          {!collapsed && <span>Help & Docs</span>}
         </button>
 
         {!collapsed && (
-          <div className="pt-3 px-3">
-            <div className="p-2.5 rounded-xl bg-[#0D1B2E] border border-[#1A2D4A] flex items-center gap-2.5">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="pt-2">
+            <div className="px-3 py-2 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               <div className="flex flex-col min-w-0">
-                <span className="font-tech text-[11px] font-bold text-slate-300 uppercase tracking-wider">A* + YOLO + XGBoost</span>
-                <span className="text-[10px] text-emerald-400 truncate font-mono">v2.4 Production</span>
+                <span className="text-[10px] font-semibold text-slate-300">Core Models Online</span>
+                <span className="text-[9px] text-slate-400 truncate font-mono">A* • YOLOv8 • XGBoost</span>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import AppShell from './components/layout/AppShell';
-import DashboardView from './components/dashboard/DashboardView';
+import CinematicAppShell from './components/cinematic/CinematicAppShell';
+import CinematicDashboardView from './components/cinematic/CinematicDashboardView';
 import SimulationView from './components/simulation/SimulationView';
 import VisionView from './components/vision/VisionView';
 import AnalyticsView from './components/analytics/AnalyticsView';
@@ -21,14 +21,16 @@ import type {
 const validPages: PageId[] = ['dashboard', 'simulation', 'vision', 'analytics', 'experiments', 'architecture'];
 
 const getPageFromHash = (): PageId => {
-  const hash = window.location.hash.replace('#/', '').replace('#', '');
+  const hash = window.location.hash.replace('#/', '').replace('#', '').toLowerCase();
+  if (['blood', 'activities', 'insights', 'actionplan', 'plan'].some(m => hash.includes(m))) {
+    return 'dashboard';
+  }
   return validPages.includes(hash as PageId) ? (hash as PageId) : 'dashboard';
 };
 
 const App: React.FC = () => {
   // Navigation
   const [activePage, setActivePage] = useState<PageId>(getPageFromHash);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
 
@@ -147,7 +149,6 @@ const App: React.FC = () => {
 
     const connectWs = () => {
       try {
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
         const wsBaseUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
         const wsUrl = `${wsBaseUrl}/ws/state`;
@@ -290,77 +291,86 @@ const App: React.FC = () => {
   };
 
   return (
-    <AppShell
+    <CinematicAppShell
       activePage={activePage}
       onSelectPage={handleSelectPage}
       systemStatus={sysStatus}
-      sidebarCollapsed={sidebarCollapsed}
-      onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-      onOpenSettings={() => setIsSettingsOpen(true)}
-      onOpenAbout={() => setIsAboutOpen(true)}
+      onOpenHelpModal={() => setIsAboutOpen(true)}
     >
-      {/* 1. Executive Operations Dashboard */}
+      {/* 1. Cinematic Bio-AI Dashboard (Reference Specification) */}
       {activePage === 'dashboard' && (
-        <DashboardView
+        <CinematicDashboardView
           onNavigate={handleSelectPage}
           systemStatus={sysStatus}
           simState={simState}
           simRunning={simRunning}
           onStartSim={startSim}
           onStopSim={stopSim}
-          onResetSim={resetSim}
-          selectedRobotId={selectedRobotId}
-          onSelectRobot={setSelectedRobotId}
         />
       )}
 
-      {/* 2. 2D Fleet Simulation */}
+      {/* 2. 2D Fleet Simulation View */}
       {activePage === 'simulation' && (
-        <SimulationView
-          simState={simState}
-          simRunning={simRunning}
-          onStartSim={startSim}
-          onStopSim={stopSim}
-          onResetSim={resetSim}
-          selectedRobotId={selectedRobotId}
-          onSelectRobot={setSelectedRobotId}
-        />
+        <div className="w-full px-6 sm:px-10 py-6 animate-premium-fade">
+          <SimulationView
+            simState={simState}
+            simRunning={simRunning}
+            onStartSim={startSim}
+            onStopSim={stopSim}
+            onResetSim={resetSim}
+            selectedRobotId={selectedRobotId}
+            onSelectRobot={setSelectedRobotId}
+          />
+        </div>
       )}
 
       {/* 3. Computer Vision View */}
       {activePage === 'vision' && (
-        <VisionView
-          systemStatus={sysStatus}
-          visionImage={visionImage}
-          visionPreview={visionPreview}
-          visionResults={visionResults}
-          isVisionLoading={isVisionLoading}
-          visionError={visionError}
-          onImageChange={handleImageChange}
-          onSelectSample={handleSelectSample}
-          onVisionUpload={handleVisionUpload}
-          onClearImage={handleClearImage}
-        />
+        <div className="w-full px-6 sm:px-10 py-6 animate-premium-fade">
+          <VisionView
+            systemStatus={sysStatus}
+            visionImage={visionImage}
+            visionPreview={visionPreview}
+            visionResults={visionResults}
+            isVisionLoading={isVisionLoading}
+            visionError={visionError}
+            onImageChange={handleImageChange}
+            onSelectSample={handleSelectSample}
+            onVisionUpload={handleVisionUpload}
+            onClearImage={handleClearImage}
+          />
+        </div>
       )}
 
       {/* 4. Predictive Analytics View */}
       {activePage === 'analytics' && (
-        <AnalyticsView
-          systemStatus={sysStatus}
-          mlInput={mlInput}
-          setMlInput={setMlInput}
-          mlResults={mlResults}
-          isMlLoading={isMlLoading}
-          mlError={mlError}
-          onMlPredict={handleMlPredict}
-        />
+        <div className="w-full px-6 sm:px-10 py-6 animate-premium-fade">
+          <AnalyticsView
+            systemStatus={sysStatus}
+            mlInput={mlInput}
+            setMlInput={setMlInput}
+            mlResults={mlResults}
+            isMlLoading={isMlLoading}
+            mlError={mlError}
+            onMlPredict={handleMlPredict}
+            onNavigate={handleSelectPage}
+          />
+        </div>
       )}
 
       {/* 5. Dataset & Experiments View */}
-      {activePage === 'experiments' && <DatasetExperimentsView />}
+      {activePage === 'experiments' && (
+        <div className="w-full px-6 sm:px-10 py-6 animate-premium-fade">
+          <DatasetExperimentsView />
+        </div>
+      )}
 
       {/* 6. System Architecture View */}
-      {activePage === 'architecture' && <SystemArchitectureView />}
+      {activePage === 'architecture' && (
+        <div className="w-full px-6 sm:px-10 py-6 animate-premium-fade">
+          <SystemArchitectureView />
+        </div>
+      )}
 
       {/* Modals */}
       <SettingsModal
@@ -371,7 +381,7 @@ const App: React.FC = () => {
         isOpen={isAboutOpen}
         onClose={() => setIsAboutOpen(false)}
       />
-    </AppShell>
+    </CinematicAppShell>
   );
 };
 

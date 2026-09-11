@@ -20,21 +20,21 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-tech font-bold uppercase tracking-wider rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#06101F] disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98]';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#080C14] disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.97] hover:-translate-y-px';
 
   const sizeStyles = {
-    sm: 'px-3 py-1.5 text-xs gap-1.5',
-    md: 'px-4 py-2.5 text-sm gap-2',
-    lg: 'px-6 py-3 text-base gap-2.5 font-semibold',
+    sm: 'px-2.5 py-1.5 text-xs gap-1.5',
+    md: 'px-3.5 py-2 text-xs font-semibold gap-2',
+    lg: 'px-5 py-2.5 text-sm font-semibold gap-2.5',
   };
 
   const variantStyles = {
-    primary: 'bg-gradient-to-r from-[#1683FF] to-[#00B4D8] hover:from-[#1E8FFF] hover:to-[#00C2E8] text-white shadow-md shadow-blue-500/20 focus:ring-blue-500',
-    secondary: 'bg-[#102238] hover:bg-[#162D4A] text-slate-200 border border-[#1E3A5F] hover:border-blue-500/50 focus:ring-slate-400',
-    danger: 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-md shadow-red-500/20 focus:ring-red-500',
-    success: 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-500/20 focus:ring-emerald-500',
-    outline: 'border border-[#1A2D4A] hover:border-[#1683FF] text-slate-300 hover:text-white bg-transparent focus:ring-blue-500',
-    ghost: 'text-slate-400 hover:text-white hover:bg-slate-800/40 focus:ring-slate-500',
+    primary: 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-sm hover:shadow-md hover:shadow-amber-500/25 focus:ring-amber-500',
+    secondary: 'bg-white/[0.06] hover:bg-white/[0.12] text-slate-200 border border-white/10 hover:border-white/20 focus:ring-slate-500 shadow-sm',
+    danger: 'bg-rose-600 hover:bg-rose-500 text-white shadow-sm hover:shadow-md hover:shadow-rose-600/20 focus:ring-rose-500',
+    success: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm hover:shadow-md hover:shadow-emerald-600/20 focus:ring-emerald-500',
+    outline: 'border border-white/15 text-slate-300 hover:bg-white/10 hover:text-white hover:border-white/25 bg-transparent focus:ring-amber-500',
+    ghost: 'text-slate-400 hover:text-white hover:bg-white/[0.08] focus:ring-slate-500',
   };
 
   return (
