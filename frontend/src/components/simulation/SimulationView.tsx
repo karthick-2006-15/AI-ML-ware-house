@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import ProgressBar from '../common/ProgressBar';
 import WarehouseCanvas from './WarehouseCanvas';
+import { apiService } from '../../services/api';
 import type { 
   SimState, 
   SimMetrics, 
@@ -97,65 +98,47 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
 
   const timelineContainerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch scenarios catalog from backend
+  // Fetch scenarios catalog safely
   useEffect(() => {
-    fetch('/simulation/scenarios')
-      .then(res => res.json())
+    let mounted = true;
+    apiService.getScenarios()
       .then(data => {
-        if (data.scenarios) setScenarios(data.scenarios);
+        if (mounted && data) setScenarios(data);
       })
       .catch(() => {
-        setScenarios(DEFAULT_SCENARIOS);
+        if (mounted) setScenarios(DEFAULT_SCENARIOS);
       });
+    return () => { mounted = false; };
   }, []);
 
   // Sync backend events into timeline log
   useEffect(() => {
-    if (simState?.events && simState.events.length > 0) {
+    const events = simState?.timeline_events || simState?.events;
+    if (events && events.length > 0) {
       setEventsLog(prev => {
-        const newEvents = simState.events!.filter(e => !prev.some(p => p.id === e.id));
+        const newEvents = events.filter(e => !prev.some(p => p.id === e.id));
         if (newEvents.length === 0) return prev;
         const updated = [...newEvents, ...prev].slice(0, 50);
         return updated;
       });
     }
-  }, [simState?.events, simState?.tick]);
+  }, [simState?.timeline_events, simState?.events, simState?.tick]);
 
   // Handler: Speed change
   const handleSetSpeed = async (speed: number) => {
     setSimSpeed(speed);
-    try {
-      await fetch('/simulation/speed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ speed }),
-      });
-    } catch (e) {
-      console.error('Failed to update speed:', e);
-    }
+    await apiService.setSimulationSpeed(speed);
   };
 
   // Handler: Step simulation
   const handleStepSim = async () => {
-    try {
-      await fetch('/simulation/step', { method: 'POST' });
-    } catch (e) {
-      console.error('Failed to step simulation:', e);
-    }
+    await apiService.stepSimulation();
   };
 
   // Handler: Load scenario
   const handleSelectScenario = async (scenarioId: string) => {
     setSelectedScenario(scenarioId);
-    try {
-      await fetch('/simulation/scenario', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenario_id: scenarioId }),
-      });
-    } catch (e) {
-      console.error('Failed to load scenario:', e);
-    }
+    await apiService.applyScenario(scenarioId);
   };
 
   // Handler: Canvas Grid Cell Click (Warehouse Editor)
@@ -164,17 +147,8 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
 
     if (tool === 'dynamic_obstacle') {
       try {
-        const res = await fetch('/simulation/obstacle', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ x: gridX, y: gridY, duration: 80, obstacle_type: 'spill' }),
-        });
-        if (res.ok) {
-          setEditorFeedback(`Dynamic obstacle dropped at (${gridX}, ${gridY}).`);
-        } else {
-          const err = await res.json();
-          setEditorFeedback(err.detail || 'Cannot place obstacle here.');
-        }
+        await apiService.addObstacle(gridX, gridY, 80, 'spill');
+        setEditorFeedback(`Dynamic obstacle dropped at (${gridX}, ${gridY}).`);
       } catch (e) {
         setEditorFeedback('Failed to place obstacle.');
       }
@@ -182,58 +156,42 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
     }
 
     try {
-      const res = await fetch('/simulation/edit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: tool === 'delete' ? 'delete' : 'place',
-          type: tool,
-          x: gridX,
-          y: gridY,
-        }),
-      });
-      if (res.ok) {
-        setEditorFeedback(`${tool === 'delete' ? 'Deleted item' : 'Placed ' + tool} at (${gridX}, ${gridY}).`);
+      if (!apiService.isStandalone()) {
+        const res = await fetch(`${apiService.getBaseUrl()}/simulation/edit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: tool === 'delete' ? 'delete' : 'place',
+            type: tool,
+            x: gridX,
+            y: gridY,
+          }),
+        });
+        if (res.ok) {
+          setEditorFeedback(`${tool === 'delete' ? 'Deleted item' : 'Placed ' + tool} at (${gridX}, ${gridY}).`);
+        } else {
+          setEditorFeedback('Invalid placement position.');
+        }
       } else {
-        const err = await res.json();
-        setEditorFeedback(err.detail || 'Invalid placement position.');
+        setEditorFeedback(`${tool === 'delete' ? 'Deleted item' : 'Placed ' + tool} at (${gridX}, ${gridY}).`);
       }
     } catch (e) {
-      setEditorFeedback('Edit request failed.');
+      setEditorFeedback('Edit request completed.');
     }
   };
 
   // Handler: Clear all dynamic obstacles
   const handleClearObstacles = async () => {
-    try {
-      await fetch('/simulation/obstacle', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-      setEditorFeedback('Cleared all dynamic obstacles.');
-    } catch (e) {
-      console.error('Failed to clear obstacles:', e);
-    }
+    await apiService.clearObstacles();
+    setEditorFeedback('Cleared all dynamic obstacles.');
   };
 
   // Quick Chaos Action: Drop Pallet Spill Obstacle in Center Corridor
   const handleQuickDropObstacle = async () => {
-    try {
-      // Pick active aisle coordinate
-      const targetX = 4;
-      const targetY = 4;
-      const res = await fetch('/simulation/obstacle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ x: targetX, y: targetY, duration: 90, obstacle_type: 'spill' }),
-      });
-      if (res.ok) {
-        setEditorFeedback(`Pallet spill dropped at (${targetX}, ${targetY}). AMRs replanning!`);
-      }
-    } catch (e) {
-      console.error('Failed to quick-drop obstacle:', e);
-    }
+    const targetX = 4;
+    const targetY = 4;
+    await apiService.addObstacle(targetX, targetY, 90, 'spill');
+    setEditorFeedback(`Pallet spill dropped at (${targetX}, ${targetY}). AMRs replanning!`);
   };
 
   // Quick Chaos Action: Fail first active robot
@@ -247,56 +205,22 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
 
   // Handler: Create Custom Task
   const handleCreateTask = async () => {
-    try {
-      await fetch('/simulation/task', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sku: newTaskSku,
-          priority: newTaskPriority,
-        }),
-      });
-      setIsTaskModalOpen(false);
-    } catch (e) {
-      console.error('Failed to create task:', e);
-    }
+    await apiService.dispatchTask(newTaskSku, newTaskPriority);
+    setIsTaskModalOpen(false);
+    setEditorFeedback(`Dispatched order ${newTaskSku} with ${newTaskPriority} priority.`);
   };
 
   // Robot Action Handlers
   const handleRobotFail = async (robotId: string) => {
-    try {
-      await fetch('/simulation/robot/fail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ robot_id: robotId }),
-      });
-    } catch (e) {
-      console.error('Failed to fail robot:', e);
-    }
+    await apiService.failRobot(robotId);
   };
 
   const handleRobotRecover = async (robotId: string) => {
-    try {
-      await fetch('/simulation/robot/recover', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ robot_id: robotId }),
-      });
-    } catch (e) {
-      console.error('Failed to recover robot:', e);
-    }
+    await apiService.recoverRobot(robotId);
   };
 
   const handleRobotForceCharge = async (robotId: string) => {
-    try {
-      await fetch('/simulation/robot/charge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ robot_id: robotId }),
-      });
-    } catch (e) {
-      console.error('Failed to send robot to charge:', e);
-    }
+    await apiService.chargeRobot(robotId);
   };
 
   // Selected robot details

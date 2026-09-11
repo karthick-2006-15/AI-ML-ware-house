@@ -1,7 +1,7 @@
 import React from 'react';
 import Logo from './Logo';
 import UserProfile from './UserProfile';
-import { HelpCircle, Play, Eye, TrendingUp, Layers, Cpu, Compass } from 'lucide-react';
+import { HelpCircle, Settings, Play, Eye, TrendingUp, Layers, Cpu, Compass } from 'lucide-react';
 import type { PageId, SystemStatus } from '../../types';
 
 interface CinematicAppShellProps {
@@ -9,6 +9,7 @@ interface CinematicAppShellProps {
   onSelectPage: (page: PageId) => void;
   systemStatus: SystemStatus;
   onOpenHelpModal: () => void;
+  onOpenSettingsModal?: () => void;
   children: React.ReactNode;
 }
 
@@ -17,6 +18,7 @@ export const CinematicAppShell: React.FC<CinematicAppShellProps> = ({
   onSelectPage,
   systemStatus,
   onOpenHelpModal,
+  onOpenSettingsModal,
   children,
 }) => {
   const isOnline = systemStatus.yolo_ready && systemStatus.xgboost_ready;
@@ -78,6 +80,15 @@ export const CinematicAppShell: React.FC<CinematicAppShellProps> = ({
             >
               <HelpCircle className="w-3.5 h-3.5" />
             </button>
+            {onOpenSettingsModal && (
+              <button
+                onClick={onOpenSettingsModal}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all opacity-80 hover:opacity-100"
+                title="Backend & System Settings"
+              >
+                <Settings className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           {/* Mobile Navigation Dropdown Trigger */}

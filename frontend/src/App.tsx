@@ -8,6 +8,7 @@ import DatasetExperimentsView from './components/experiments/DatasetExperimentsV
 import SystemArchitectureView from './components/architecture/SystemArchitectureView';
 import SettingsModal from './components/common/SettingsModal';
 import HelpAboutModal from './components/common/HelpAboutModal';
+import { apiService } from './services/api';
 
 import type { 
   PageId, 
@@ -89,125 +90,59 @@ const App: React.FC = () => {
   const [isMlLoading, setIsMlLoading] = useState(false);
   const [mlError, setMlError] = useState<string | null>(null);
 
-  // 1. Poll System Status
+  // 1. Poll System Status safely (Zero 404 spam)
   useEffect(() => {
+    let mounted = true;
     const checkStatus = async () => {
       try {
-        const res = await fetch('/api/ml/status');
-        if (res.ok) {
-          const data = await res.json();
-          setSysStatus(data);
-        }
-      } catch (e) {
-        // fallback to direct backend if proxy is not yet ready
-        try {
-          const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-          const res = await fetch(`${apiUrl}/api/ml/status`);
-          if (res.ok) {
-            const data = await res.json();
-            setSysStatus(data);
-          }
-        } catch {
-          // ignore
-        }
+        const status = await apiService.getSystemStatus();
+        if (mounted) setSysStatus(status);
+      } catch {
+        // silent fallback
       }
     };
     checkStatus();
-    const interval = setInterval(checkStatus, 5000);
-    return () => clearInterval(interval);
+
+    const interval = setInterval(() => {
+      if (!apiService.isStandalone()) {
+        checkStatus();
+      }
+    }, 10000);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
-  // 2. Fetch Initial Simulation State & Connect WebSocket for Live Telemetry
+  // 2. Fetch Initial Simulation State & Connect Live Stream
   useEffect(() => {
-    // Immediate initial state fetch
-    const fetchInitState = async () => {
-      try {
-        const res = await fetch('/simulation/state');
-        if (res.ok) {
-          const data: SimState = await res.json();
-          setSimState(data);
-          if (data.running !== undefined) setSimRunning(data.running);
-        }
-      } catch (e) {
-        try {
-          const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-          const res = await fetch(`${apiUrl}/simulation/state`);
-          if (res.ok) {
-            const data: SimState = await res.json();
-            setSimState(data);
-            if (data.running !== undefined) setSimRunning(data.running);
-          }
-        } catch {
-          // ignore
-        }
+    const unsub = apiService.subscribeToSimulation((state) => {
+      setSimState(state);
+      if (state.running !== undefined) {
+        setSimRunning(state.running);
       }
-    };
-    fetchInitState();
+    });
 
-    let ws: WebSocket | null = null;
-    let retryTimer: any = null;
-
-    const connectWs = () => {
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-        const wsBaseUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
-        const wsUrl = `${wsBaseUrl}/ws/state`;
-        ws = new WebSocket(wsUrl);
-        ws.onmessage = (event) => {
-          try {
-            const state: SimState = JSON.parse(event.data);
-            setSimState(state);
-            if (state.running !== undefined) {
-              setSimRunning(state.running);
-            }
-          } catch (e) {
-            console.error('Failed to parse sim state WebSocket message:', e);
-          }
-        };
-        ws.onclose = () => {
-          retryTimer = setTimeout(connectWs, 3000);
-        };
-        ws.onerror = () => {
-          if (ws) ws.close();
-        };
-      } catch (e) {
-        retryTimer = setTimeout(connectWs, 3000);
-      }
-    };
-
-    connectWs();
     return () => {
-      if (ws) ws.close();
-      if (retryTimer) clearTimeout(retryTimer);
+      unsub();
     };
   }, []);
 
   // 3. Simulation Handlers
   const startSim = async () => {
-    try {
-      await fetch('/simulation/start', { method: 'POST' });
-      setSimRunning(true);
-    } catch (e) {
-      console.error('Failed to start simulation:', e);
-    }
+    await apiService.startSimulation();
+    setSimRunning(true);
   };
 
   const stopSim = async () => {
-    try {
-      await fetch('/simulation/stop', { method: 'POST' });
-      setSimRunning(false);
-    } catch (e) {
-      console.error('Failed to stop simulation:', e);
-    }
+    await apiService.stopSimulation();
+    setSimRunning(false);
   };
 
   const resetSim = async () => {
-    try {
-      await fetch('/simulation/reset', { method: 'POST' });
-      setSimRunning(false);
-    } catch (e) {
-      console.error('Failed to reset simulation:', e);
-    }
+    await apiService.resetSimulation();
+    setSimRunning(false);
   };
 
   // 4. Vision Handlers
@@ -250,18 +185,9 @@ const App: React.FC = () => {
     }
     setIsVisionLoading(true);
     setVisionError(null);
-    const formData = new FormData();
-    formData.append('file', visionImage);
 
     try {
-      const res = await fetch('/api/ml/detect', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) {
-        throw new Error(`Inference failed with status ${res.status}`);
-      }
-      const data: VisionResult = await res.json();
+      const data = await apiService.detectObjects(visionImage, visionPreview || '');
       setVisionResults(data);
     } catch (e: any) {
       setVisionError(e.message || 'Vision inference failed.');
@@ -275,13 +201,7 @@ const App: React.FC = () => {
     setIsMlLoading(true);
     setMlError(null);
     try {
-      const res = await fetch('/api/ml/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mlInput),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const data: PredictResult = await res.json();
+      const data = await apiService.predictWarehouse(mlInput);
       setMlResults(data);
     } catch (e: any) {
       setMlError(`Prediction Failed: ${e.message || 'Server error'}`);
@@ -296,6 +216,7 @@ const App: React.FC = () => {
       onSelectPage={handleSelectPage}
       systemStatus={sysStatus}
       onOpenHelpModal={() => setIsAboutOpen(true)}
+      onOpenSettingsModal={() => setIsSettingsOpen(true)}
     >
       {/* 1. Cinematic Bio-AI Dashboard (Reference Specification) */}
       {activePage === 'dashboard' && (

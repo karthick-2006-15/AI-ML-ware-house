@@ -194,6 +194,8 @@ export interface SimMetrics {
   total_robots?: number;
   throughput_rate?: number;
   comparison?: CoordinatorComparison;
+  fleet_power_reserve?: number;
+  space_time_efficiency?: number;
 }
 
 export interface EntityState {
@@ -221,7 +223,11 @@ export interface SimState {
     pending: TaskInfo[];
     active: TaskInfo[];
   };
+  tasks_queue?: TaskInfo[];
   events?: TimelineEvent[];
+  timeline_events?: TimelineEvent[];
+  coordinator_comparison?: CoordinatorComparison;
+  grid_size?: number;
   metrics?: SimMetrics;
 }
 

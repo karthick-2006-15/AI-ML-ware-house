@@ -3,6 +3,7 @@ import { X, Sliders, Shield, Save } from 'lucide-react';
 import Button from './Button';
 import Input from './Input';
 import Select from './Select';
+import { apiService } from '../../services/api';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -10,9 +11,9 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const [apiUrl, setApiUrl] = useState(import.meta.env.VITE_API_URL || 'http://localhost:8000');
+  const [apiUrl, setApiUrl] = useState(apiService.getBaseUrl() || '');
   const [wsUrl, setWsUrl] = useState(
-    (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('http://', 'ws://').replace('https://', 'wss://') : 'ws://localhost:8000') + '/ws/state'
+    (apiService.getBaseUrl() ? apiService.getBaseUrl().replace('http://', 'ws://').replace('https://', 'wss://') : '') + '/ws/state'
   );
   const [simSpeed, setSimSpeed] = useState('1.0x');
   const [confThreshold, setConfThreshold] = useState('0.45');
@@ -21,11 +22,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   const handleSave = () => {
+    apiService.setCustomBackendUrl(apiUrl);
     setSaved(true);
     setTimeout(() => {
       setSaved(false);
       onClose();
-    }, 800);
+    }, 600);
+  };
+
+  const handleUseStandalone = () => {
+    setApiUrl('');
+    setWsUrl('');
+    apiService.setCustomBackendUrl(null);
+    setSaved(true);
+    setTimeout(() => {
+      setSaved(false);
+      onClose();
+    }, 600);
   };
 
   return (
@@ -82,18 +95,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           <div className="p-3.5 rounded-xl bg-[#08182A] border border-[#1A2D4A] flex items-center gap-3">
             <Shield className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <p className="text-xs text-slate-400 leading-relaxed">
-              Models are locally executed on dedicated Python virtual environment runtime. Zero telemetry is exported to third-party servers.
+              When deployed to Vercel or cloud static hosting without an active FastAPI backend, the system runs automatically in <strong>Autonomous Client Engine Mode</strong> with zero 404 errors. Enter your live Render / FastAPI backend URL to switch to remote live ML execution.
             </p>
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-[#1A2D4A]">
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" icon={<Save className="w-4 h-4" />} onClick={handleSave}>
-            {saved ? 'Saved!' : 'Save Configuration'}
-          </Button>
+        <div className="flex items-center justify-between gap-3 pt-4 border-t border-[#1A2D4A]">
+          <button
+            type="button"
+            onClick={handleUseStandalone}
+            className="text-xs text-amber-400 hover:text-amber-300 underline font-medium cursor-pointer"
+          >
+            Reset to Standalone Engine
+          </button>
+          <div className="flex items-center gap-3">
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button variant="primary" icon={<Save className="w-4 h-4" />} onClick={handleSave}>
+              {saved ? 'Saved!' : 'Save Configuration'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

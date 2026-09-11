@@ -15,6 +15,7 @@ import {
 import Card from '../common/Card';
 import Badge from '../common/Badge';
 import type { VisionDetection, VisionResult } from '../../types';
+import { apiService } from '../../services/api';
 
 interface LiveWebcamFeedProps {
   onCaptureSnapshot?: (file: File, result?: VisionResult) => void;
@@ -341,19 +342,9 @@ export const LiveWebcamFeed: React.FC<LiveWebcamFeedProps> = ({
 
       try {
         const base64Data = sourceCanvas.toDataURL('image/jpeg', 0.6);
+        const data: VisionResult = await apiService.detectFrame(base64Data, confThreshold);
 
-        const res = await fetch('/api/ml/detect_frame', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            image: base64Data,
-            confidence: confThreshold,
-            render_annotated: false,
-          }),
-        });
-
-        if (res.ok && isSubscribed) {
-          const data: VisionResult = await res.json();
+        if (isSubscribed) {
           const latency = Math.round(performance.now() - startTime);
           setLatencyMs(latency);
           setDetections(data.detections || []);
