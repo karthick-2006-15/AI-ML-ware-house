@@ -147,9 +147,17 @@ class WarehouseInference:
             "explanations": self.explanations
         }
 
+_warehouse_infer_instance = None
+
+def get_warehouse_inference() -> "WarehouseInference":
+    global _warehouse_infer_instance
+    if _warehouse_infer_instance is None:
+        _warehouse_infer_instance = WarehouseInference()
+    return _warehouse_infer_instance
+
 if __name__ == "__main__":
     # Test inference
-    infer = WarehouseInference()
+    infer = get_warehouse_inference()
     sample = {
         'stock_level': 50,
         'reorder_point': 60,

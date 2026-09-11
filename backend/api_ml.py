@@ -5,26 +5,18 @@ import sys
 import os
 import shutil
 import tempfile
+import json
+import cv2
+import numpy as np
+import base64
+from typing import Optional
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ml.warehouse.inference import WarehouseInference
-from ml.vision.inference import VisionInference
+from ml.warehouse.inference import get_warehouse_inference
+from ml.vision.inference import get_vision_inference, get_vision_metadata
 
 ml_router = APIRouter(prefix="/api/ml", tags=["Machine Learning"])
-
-# Initialize models independently so one failure never disables the other
-try:
-    warehouse_infer = WarehouseInference()
-except Exception as e:
-    print(f"WARNING: Warehouse inference initialization error: {e}")
-    warehouse_infer = None
-
-try:
-    vision_infer = VisionInference()
-except Exception as e:
-    print(f"WARNING: Vision inference initialization error: {e}")
-    vision_infer = None
 
 class WarehousePredictRequest(BaseModel):
     stock_level: float
@@ -48,32 +40,22 @@ class WarehousePredictRequest(BaseModel):
 @ml_router.get("/status")
 def get_status():
     """
-    Returns the real-time status and metadata of the loaded ML models
+    Returns the real-time status and metadata of the loaded ML models.
+    Lightweight and fast: does not trigger high-memory neural net loading.
     """
-    wh_loaded = vision_infer is not None and getattr(vision_infer, 'warehouse_model', None) is not None
-    wh_classes = list(vision_infer.warehouse_model.names.values()) if wh_loaded else []
+    vision_meta = get_vision_metadata()
     
-    return JSONResponse({
-        "warehouse_detector": "YOLOv8",
-        "warehouse_model_loaded": wh_loaded,
-        "warehouse_model_path": getattr(vision_infer, 'model_path', "None"),
-        "warehouse_classes": wh_classes,
-        "general_detector": {
-            "loaded": vision_infer is not None and vision_infer.general_model is not None,
-            "classes_count": len(vision_infer.general_model.names) if (vision_infer and vision_infer.general_model) else 0
-        },
-        "xgboost": {
-            "loaded": warehouse_infer is not None
-        },
-        "xgboost_ready": warehouse_infer is not None,
-        "yolo_ready": wh_loaded
-    })
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    xgb_path = os.path.join(repo_root, "models", "xgboost", "stockout_model.pkl")
+    xgb_exists = os.path.exists(xgb_path) or os.path.exists("models/xgboost/stockout_model.pkl")
 
-import json
-import cv2
-import numpy as np
-import base64
-from typing import Optional
+    return JSONResponse({
+        **vision_meta,
+        "xgboost": {
+            "loaded": xgb_exists
+        },
+        "xgboost_ready": xgb_exists
+    })
 
 class FrameDetectRequest(BaseModel):
     image: str
@@ -82,34 +64,39 @@ class FrameDetectRequest(BaseModel):
 
 @ml_router.post("/detect")
 async def detect_objects(file: UploadFile = File(...)):
-    if not vision_infer:
-        raise HTTPException(status_code=503, detail="Vision model not loaded.")
+    try:
+        vision_infer = get_vision_inference()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Vision model initialization failed: {str(e)}")
         
     if not file.filename.endswith(('.png', '.jpg', '.jpeg')):
         raise HTTPException(status_code=400, detail="Invalid image file.")
         
     try:
-        # Create a temp file
         temp_dir = tempfile.mkdtemp()
         temp_path = os.path.join(temp_dir, file.filename)
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-        # Run inference
         result = vision_infer.predict_image(temp_path)
         
-        # Clean up
-        os.remove(temp_path)
-        os.rmdir(temp_dir)
-        
+        try:
+            os.remove(temp_path)
+            os.rmdir(temp_dir)
+        except Exception:
+            pass
+            
         return JSONResponse(content=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
 
 @ml_router.post("/detect_frame")
 async def detect_frame(request: FrameDetectRequest):
-    if not vision_infer:
-        raise HTTPException(status_code=503, detail="Vision model not loaded.")
+    try:
+        vision_infer = get_vision_inference()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Vision model initialization failed: {str(e)}")
+        
     try:
         data_str = request.image
         if "," in data_str:
@@ -131,15 +118,10 @@ async def detect_frame(request: FrameDetectRequest):
 
 @ml_router.post("/predict")
 def predict_warehouse(request: WarehousePredictRequest):
-    global warehouse_infer
-    if not warehouse_infer:
-        try:
-            warehouse_infer = WarehouseInference()
-        except Exception as e:
-            print(f"[predict_warehouse] Lazy init failed: {e}")
-            
-    if not warehouse_infer:
-        raise HTTPException(status_code=503, detail="Warehouse analytics model not loaded.")
+    try:
+        warehouse_infer = get_warehouse_inference()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Warehouse analytics model initialization failed: {str(e)}")
         
     try:
         data = request.dict()

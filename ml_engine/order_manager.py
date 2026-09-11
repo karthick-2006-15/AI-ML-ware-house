@@ -9,10 +9,10 @@ from simulation.environment import WarehouseEnv
 from ml_engine.pathfinding import AStarPlanner, astar
 from ml_engine.multi_robot_coordinator import MultiRobotCoordinator
 
-# Load XGBoost inference module gracefully
+# Load XGBoost inference module gracefully via singleton
 try:
-    from ml.warehouse.inference import WarehouseInference
-    _xgb_inference = WarehouseInference()
+    from ml.warehouse.inference import get_warehouse_inference
+    _xgb_inference = get_warehouse_inference()
 except Exception as _e:
     print(f"[OrderManager] XGBoost inference unavailable: {_e}")
     _xgb_inference = None

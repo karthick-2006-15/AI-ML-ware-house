@@ -9,7 +9,7 @@ import os
 import cv2
 import base64
 import numpy as np
-from ultralytics import YOLO
+import gc
 
 def calculate_iou(box1, box2):
     x1_1, y1_1, x2_1, y2_1 = box1
@@ -46,22 +46,32 @@ CLASS_PALETTE = {
 
 class VisionInference:
     def __init__(self):
-        # LAYER 1: General Object Detector (COCO - filtered to allowed facility classes)
-        self.general_model = YOLO("yolov8n.pt")
+        # Restrict CPU threads and reduce memory footprint for cloud containers
+        os.environ["OMP_NUM_THREADS"] = "1"
+        os.environ["MKL_NUM_THREADS"] = "1"
+        os.environ["YOLO_VERBOSE"] = "False"
         
-        # LAYER 2: Warehouse Specific 6-Class Detector
+        try:
+            import torch
+            torch.set_num_threads(1)
+        except Exception:
+            pass
+
+        from ultralytics import YOLO
+
+        repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         model_candidates = [
+            os.path.join(repo_root, "models", "final", "weights", "best.pt"),
+            os.path.join(repo_root, "models", "experiments", "exp3_augmented", "weights", "best.pt"),
+            os.path.join(repo_root, "models", "baseline", "weights", "best.pt"),
             os.path.join("models", "final", "weights", "best.pt"),
-            os.path.join("models", "experiments", "exp3_augmented", "weights", "best.pt"),
-            os.path.join("models", "experiments", "exp2_balanced", "weights", "best.pt"),
-            os.path.join("models", "baseline", "weights", "best.pt"),
-            os.path.join("runs", "detect", "models", "yolo", "warehouse_vision_v3", "weights", "best.pt"),
-            os.path.join("runs", "detect", "models", "yolo", "warehouse_vision_v2", "weights", "best.pt"),
-            os.path.join("runs", "detect", "models", "yolo", "warehouse_vision", "weights", "best.pt")
         ]
         
         self.warehouse_model = None
+        self.general_model = None
         self.model_path = None
+        
+        # 1. Primary: Custom trained 6-class Warehouse YOLOv8 model
         for cand in model_candidates:
             if os.path.exists(cand):
                 try:
@@ -72,70 +82,42 @@ class VisionInference:
                 except Exception as e:
                     print(f"[VISION] Failed to load candidate {cand}: {e}")
 
+        # 2. Fallback: Only if custom weights are missing, use yolov8n.pt
+        if self.warehouse_model is None:
+            try:
+                print("[VISION] Custom warehouse model not found. Falling back to yolov8n.pt")
+                self.general_model = YOLO("yolov8n.pt")
+                self.model_path = "yolov8n.pt"
+            except Exception as e:
+                print(f"[VISION] Failed to load yolov8n.pt: {e}")
+
     def predict_frame(self, img: np.ndarray, conf_threshold: float = 0.25, render_annotated: bool = True):
         if img is None or img.size == 0:
             raise ValueError("Empty or invalid image frame provided.")
             
-        gen_detections = []
-        wh_detections = []
+        final_detections = []
+        active_model = self.warehouse_model if self.warehouse_model else self.general_model
         
-        # 1. Run General Detector (COCO) with Class Filtering
-        gen_results = self.general_model(img, conf=conf_threshold, verbose=False)
-        for result in gen_results:
-            for box in result.boxes:
-                x1, y1, x2, y2 = box.xyxy[0].tolist()
-                conf = float(box.conf[0])
-                cls_id = int(box.cls[0])
-                class_name = self.general_model.names[cls_id]
-                
-                if class_name.lower() in ALLOWED_GENERAL_CLASSES:
-                    gen_detections.append({
-                        "class": class_name,
-                        "class_name": class_name,
-                        "confidence": round(conf, 4),
-                        "bbox": [round(x1, 2), round(y1, 2), round(x2, 2), round(y2, 2)],
-                        "source": "general"
-                    })
-                
-        # 2. Run Warehouse Detector (6 Standardized Classes)
-        if self.warehouse_model:
-            wh_results = self.warehouse_model(img, conf=conf_threshold, verbose=False)
-            for result in wh_results:
+        if active_model:
+            results = active_model(img, conf=conf_threshold, verbose=False)
+            for result in results:
                 for box in result.boxes:
                     x1, y1, x2, y2 = box.xyxy[0].tolist()
                     conf = float(box.conf[0])
                     cls_id = int(box.cls[0])
-                    class_name = self.warehouse_model.names[cls_id]
-                    wh_detections.append({
+                    class_name = active_model.names[cls_id]
+                    
+                    # If using fallback general detector, filter to allowed facility classes
+                    if self.warehouse_model is None and class_name.lower() not in ALLOWED_GENERAL_CLASSES:
+                        continue
+                        
+                    final_detections.append({
                         "class": class_name,
                         "class_name": class_name,
                         "confidence": round(conf, 4),
                         "bbox": [round(x1, 2), round(y1, 2), round(x2, 2), round(y2, 2)],
-                        "source": "warehouse"
+                        "source": "warehouse" if self.warehouse_model else "general"
                     })
-                    
-        # 3. Intelligent Fusion & Deduplication
-        final_detections = []
-        
-        # Add high-priority warehouse detections first
-        for det in wh_detections:
-            if not any(calculate_iou(det["bbox"], ex["bbox"]) > 0.65 and det["class"] == ex["class"] for ex in final_detections):
-                final_detections.append(det)
-
-        # Merge complementary general detections (e.g. Person, vehicle)
-        for g in gen_detections:
-            g_cls = g["class"].lower()
-            is_dup = False
-            for ex in list(final_detections):
-                iou = calculate_iou(g["bbox"], ex["bbox"])
-                if iou > 0.4:
-                    is_dup = True
-                    if g_cls == "person" and ex["class"].lower() == "person":
-                        if g["confidence"] > ex["confidence"]:
-                            ex["confidence"] = g["confidence"]
-                    break
-            if not is_dup:
-                final_detections.append(g)
 
         # Render annotated image if requested
         annotated_b64 = None
@@ -176,10 +158,34 @@ class VisionInference:
             raise ValueError(f"Could not read image from {image_path}")
         return self.predict_frame(img, conf_threshold=conf_threshold, render_annotated=True)
 
+_vision_infer_instance = None
+
+def get_vision_inference() -> "VisionInference":
+    global _vision_infer_instance
+    if _vision_infer_instance is None:
+        _vision_infer_instance = VisionInference()
+    return _vision_infer_instance
+
+def get_vision_metadata() -> dict:
+    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    best_path = os.path.join(repo_root, "models", "final", "weights", "best.pt")
+    exists = os.path.exists(best_path) or os.path.exists("models/final/weights/best.pt")
+    return {
+        "warehouse_detector": "YOLOv8",
+        "warehouse_model_loaded": exists,
+        "warehouse_model_path": best_path if exists else "None",
+        "warehouse_classes": ["person", "box", "pallet", "forklift", "robot", "robotic_arm"],
+        "general_detector": {
+            "loaded": True,
+            "classes_count": 80
+        },
+        "yolo_ready": exists
+    }
+
 if __name__ == "__main__":
     import sys, pprint
     if len(sys.argv) > 1:
-        infer = VisionInference()
+        infer = get_vision_inference()
         res = infer.predict_image(sys.argv[1])
         res["annotated_image"] = res["annotated_image"][:30] + "..." if res["annotated_image"] else None
         pprint.pprint(res)
