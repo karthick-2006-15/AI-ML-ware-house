@@ -88,7 +88,7 @@ class OrderManager:
             else:
                 priority = TaskPriority.LOW
 
-            task_id = f"TSK-{str(uuid.UUID(int=int(self.env.rng.randint(0, 2**31-1))))[:6].upper()}"
+            task_id = f"TSK-{uuid.uuid4().hex[:6].upper()}"
             src = (target_shelf.x, target_shelf.y) if target_shelf else (2, 2)
             dst = (packing_station.x, packing_station.y) if packing_station else (5, 0)
             
