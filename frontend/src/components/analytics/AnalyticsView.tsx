@@ -725,7 +725,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                   </div>
 
                   {/* SHAP Feature Contribution Bars */}
-                  {mlResults.explanations?.stockout_risk && (
+                  {mlResults.explanations?.stockout_risk && Array.isArray(mlResults.explanations.stockout_risk) && (
                     <div className="p-3.5 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-2.5">
                       <div className="flex justify-between items-center pb-2 border-b border-slate-800/60">
                         <span className="text-xs font-semibold text-white flex items-center gap-1.5">

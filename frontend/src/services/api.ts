@@ -279,10 +279,16 @@ class ApiService {
     try {
       const res = await fetch(`${this.getBaseUrl()}/simulation/scenarios`);
       if (res.ok) {
-        return await res.json();
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          return data;
+        }
+        if (data && Array.isArray(data.scenarios) && data.scenarios.length > 0) {
+          return data.scenarios;
+        }
       }
     } catch {
-      // fallback
+      // fallback to mock scenarios
     }
     return MOCK_SCENARIOS;
   }
@@ -405,10 +411,22 @@ class ApiService {
           body: JSON.stringify(data),
         });
         if (res.ok) {
-          return await res.json();
+          const json = await res.json();
+          if (json && typeof json.stockout_probability === 'number') {
+            this.isBackendOnline = true;
+            return json;
+          }
+        } else {
+          // Backend responded with 503 / 502 / 500 / 404
+          // Mark backend offline for subsequent calls and fall back cleanly
+          if (res.status === 503 || res.status === 502 || res.status === 504) {
+            this.isBackendOnline = false;
+            this.hasCheckedBackend = true;
+          }
         }
       } catch {
-        // fallback to client ML
+        this.isBackendOnline = false;
+        this.hasCheckedBackend = true;
       }
     }
     return predictWarehouseClient(data);
@@ -424,10 +442,18 @@ class ApiService {
           body: formData,
         });
         if (res.ok) {
-          return await res.json();
+          const json = await res.json();
+          if (json && Array.isArray(json.detections)) {
+            this.isBackendOnline = true;
+            return json;
+          }
+        } else if (res.status === 503 || res.status === 502 || res.status === 504) {
+          this.isBackendOnline = false;
+          this.hasCheckedBackend = true;
         }
       } catch {
-        // fallback to client vision
+        this.isBackendOnline = false;
+        this.hasCheckedBackend = true;
       }
     }
     return detectVisionClient(previewUrl);
@@ -442,10 +468,18 @@ class ApiService {
           body: JSON.stringify({ image: dataUri, confidence, render_annotated: false }),
         });
         if (res.ok) {
-          return await res.json();
+          const json = await res.json();
+          if (json && Array.isArray(json.detections)) {
+            this.isBackendOnline = true;
+            return json;
+          }
+        } else if (res.status === 503 || res.status === 502 || res.status === 504) {
+          this.isBackendOnline = false;
+          this.hasCheckedBackend = true;
         }
       } catch {
-        // fallback to client vision
+        this.isBackendOnline = false;
+        this.hasCheckedBackend = true;
       }
     }
     return detectVisionClient(dataUri, confidence);

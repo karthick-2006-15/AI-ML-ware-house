@@ -9,6 +9,7 @@ import SystemArchitectureView from './components/architecture/SystemArchitecture
 import SettingsModal from './components/common/SettingsModal';
 import HelpAboutModal from './components/common/HelpAboutModal';
 import { apiService } from './services/api';
+import { INITIAL_SYSTEM_STATUS } from './services/mockData';
 
 import type { 
   PageId, 
@@ -49,10 +50,7 @@ const App: React.FC = () => {
   };
 
   // System Status
-  const [sysStatus, setSysStatus] = useState<SystemStatus>({
-    yolo_ready: false,
-    xgboost_ready: false,
-  });
+  const [sysStatus, setSysStatus] = useState<SystemStatus>(INITIAL_SYSTEM_STATUS);
 
   // Simulation State
   const [simRunning, setSimRunning] = useState(false);

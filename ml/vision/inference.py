@@ -44,20 +44,26 @@ CLASS_PALETTE = {
     "robotic_arm": (60, 60, 240)  # Red
 }
 
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 class VisionInference:
     def __init__(self):
         # LAYER 1: General Object Detector (COCO - filtered to allowed facility classes)
-        self.general_model = YOLO("yolov8n.pt")
+        self.general_model = None
+        try:
+            self.general_model = YOLO("yolov8n.pt")
+        except Exception as e:
+            print(f"[VISION] Notice: general YOLOv8n detector unavailable: {e}")
         
         # LAYER 2: Warehouse Specific 6-Class Detector
         model_candidates = [
-            os.path.join("models", "final", "weights", "best.pt"),
-            os.path.join("models", "experiments", "exp3_augmented", "weights", "best.pt"),
-            os.path.join("models", "experiments", "exp2_balanced", "weights", "best.pt"),
-            os.path.join("models", "baseline", "weights", "best.pt"),
-            os.path.join("runs", "detect", "models", "yolo", "warehouse_vision_v3", "weights", "best.pt"),
-            os.path.join("runs", "detect", "models", "yolo", "warehouse_vision_v2", "weights", "best.pt"),
-            os.path.join("runs", "detect", "models", "yolo", "warehouse_vision", "weights", "best.pt")
+            os.path.join(REPO_ROOT, "models", "final", "weights", "best.pt"),
+            os.path.join(REPO_ROOT, "models", "experiments", "exp3_augmented", "weights", "best.pt"),
+            os.path.join(REPO_ROOT, "models", "experiments", "exp2_balanced", "weights", "best.pt"),
+            os.path.join(REPO_ROOT, "models", "baseline", "weights", "best.pt"),
+            os.path.join(REPO_ROOT, "runs", "detect", "models", "yolo", "warehouse_vision_v3", "weights", "best.pt"),
+            os.path.join(REPO_ROOT, "runs", "detect", "models", "yolo", "warehouse_vision_v2", "weights", "best.pt"),
+            os.path.join(REPO_ROOT, "runs", "detect", "models", "yolo", "warehouse_vision", "weights", "best.pt")
         ]
         
         self.warehouse_model = None

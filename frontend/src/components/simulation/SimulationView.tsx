@@ -103,7 +103,12 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
     let mounted = true;
     apiService.getScenarios()
       .then(data => {
-        if (mounted && data) setScenarios(data);
+        if (mounted && data) {
+          const list = Array.isArray(data) ? data : (data as any)?.scenarios;
+          if (Array.isArray(list) && list.length > 0) {
+            setScenarios(list);
+          }
+        }
       })
       .catch(() => {
         if (mounted) setScenarios(DEFAULT_SCENARIOS);
@@ -187,6 +192,10 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
   };
 
   // Quick Chaos Action: Drop Pallet Spill Obstacle in Center Corridor
+  // Guarded array guarantees
+  const scenarioList = Array.isArray(scenarios) ? scenarios : DEFAULT_SCENARIOS;
+  const robotList = Array.isArray(simState?.robots) ? simState.robots : [];
+
   const handleQuickDropObstacle = async () => {
     const targetX = 4;
     const targetY = 4;
@@ -196,7 +205,7 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
 
   // Quick Chaos Action: Fail first active robot
   const handleQuickFailRobot = async () => {
-    const target = simState?.robots?.find(r => r.health !== 'FAILED' && r.state !== 'idle') || simState?.robots?.[0];
+    const target = robotList.find(r => r.health !== 'FAILED' && r.state !== 'idle') || robotList[0];
     if (target) {
       handleRobotFail(target.id);
       setEditorFeedback(`Simulated breakdown on Unit ${target.id}. Order reassigned!`);
@@ -224,7 +233,7 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
   };
 
   // Selected robot details
-  const selectedRobot = simState?.robots.find(r => r.id === selectedRobotId) || (simState?.robots && simState.robots.length > 0 ? simState.robots[0] : undefined);
+  const selectedRobot = robotList.find(r => r.id === selectedRobotId) || (robotList.length > 0 ? robotList[0] : undefined);
 
   // Friendly status helper
   const getFriendlyStatus = (state?: string, health?: string) => {
@@ -238,14 +247,16 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
         return { label: 'Navigating to Shelf', dotColor: 'bg-cyan-400', textColor: 'text-cyan-400' };
       case 'picking':
         return { label: 'Picking SKU', dotColor: 'bg-amber-400', textColor: 'text-amber-400' };
+      case 'moving_to_station':
       case 'moving_to_packing':
-        return { label: 'Delivering to Dock', dotColor: 'bg-emerald-400', textColor: 'text-emerald-400' };
+        return { label: 'En Route to Packing', dotColor: 'bg-purple-400', textColor: 'text-purple-400' };
+      case 'packing':
+        return { label: 'Order Processing', dotColor: 'bg-emerald-400', textColor: 'text-emerald-400' };
       case 'moving_to_charge':
-        return { label: 'Routing to Charger', dotColor: 'bg-amber-400', textColor: 'text-amber-400' };
       case 'charging':
-        return { label: 'Charging Docked', dotColor: 'bg-amber-300 animate-pulse', textColor: 'text-amber-300' };
+        return { label: 'Battery Replenishing', dotColor: 'bg-emerald-400', textColor: 'text-emerald-400' };
       default:
-        return { label: 'Operational', dotColor: 'bg-amber-400', textColor: 'text-amber-400' };
+        return { label: state || 'Operational', dotColor: 'bg-slate-400', textColor: 'text-slate-400' };
     }
   };
 
@@ -259,8 +270,8 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
     utilization: 0,
   };
 
-  const activeFleetCount = simState?.robots ? simState.robots.filter(r => r.state !== 'idle').length : 0;
-  const totalFleetCount = simState?.robots ? simState.robots.length : 5;
+  const activeFleetCount = robotList.filter(r => r.state !== 'idle').length;
+  const totalFleetCount = robotList.length > 0 ? robotList.length : 5;
 
   return (
     <div className="space-y-6 select-none animate-in fade-in duration-300">
@@ -443,11 +454,11 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-200">Demonstration Scenario:</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono font-bold">
-                {scenarios.find(s => s.id === selectedScenario)?.badge || 'Standard'}
+                {scenarioList.find(s => s.id === selectedScenario)?.badge || 'Standard'}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              {scenarios.find(s => s.id === selectedScenario)?.description || 'Evaluate multi-robot autonomous behaviors.'}
+              {scenarioList.find(s => s.id === selectedScenario)?.description || 'Evaluate multi-robot autonomous behaviors.'}
             </p>
           </div>
         </div>
@@ -458,7 +469,7 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
             onChange={(e) => handleSelectScenario(e.target.value)}
             className="bg-slate-950 border border-slate-800 hover:border-amber-500/40 text-slate-200 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none focus:ring-1 focus:ring-amber-500 min-w-[220px] md:min-w-[260px] cursor-pointer"
           >
-            {scenarios.map((sc) => (
+            {scenarioList.map((sc) => (
               <option key={sc.id} value={sc.id}>
                 {sc.name} [{sc.badge}]
               </option>
@@ -765,15 +776,15 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
             <div className="flex justify-between items-center pb-2 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <Bot className="w-4 h-4 text-amber-400" />
-                <h3 className="text-sm font-bold text-white">Active Fleet ({simState?.robots ? simState.robots.length : 0})</h3>
+                <h3 className="text-sm font-bold text-white">Active Fleet ({robotList.length})</h3>
               </div>
               <span className="text-xs font-mono text-emerald-400 font-semibold">
-                {simState?.robots ? simState.robots.filter(r => r.health === 'HEALTHY').length : 0} Healthy
+                {robotList.filter(r => r.health === 'HEALTHY').length} Healthy
               </span>
             </div>
 
             <div className="space-y-1.5 max-h-[260px] overflow-y-auto pr-1">
-              {(simState?.robots || []).map((robot) => {
+              {robotList.map((robot) => {
                 const isSelected = selectedRobotId === robot.id;
                 const status = getFriendlyStatus(robot.state, robot.health);
 
@@ -841,7 +852,7 @@ export const SimulationView: React.FC<SimulationViewProps> = ({
           </div>
 
           <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-            {simState?.tasks?.pending && simState.tasks.pending.length > 0 ? (
+            {Array.isArray(simState?.tasks?.pending) && simState.tasks.pending.length > 0 ? (
               simState.tasks.pending.map((task) => (
                 <div
                   key={task.id}
